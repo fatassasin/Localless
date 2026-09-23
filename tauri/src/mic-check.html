@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>麦克风自检</title>
+<style>
+ :root{--ok:#3ddc84;--bad:#ff5f56;--warn:#e3b341;--muted:#7d8590;--edge:rgba(255,255,255,.1)}
+ *{box-sizing:border-box}
+ body{margin:0;padding:18px 20px;background:#0d1117;color:#e6edf3;
+  font:13px/1.6 "Segoe UI",system-ui,sans-serif}
+ h1{margin:0 0 4px;font-size:15px;font-weight:600}
+ .sub{color:var(--muted);margin:0 0 16px}
+ .verdict{padding:10px 13px;border-radius:9px;border:1px solid var(--edge);
+  margin-bottom:14px;font-weight:600}
+ .verdict.ok{background:rgba(61,220,132,.12);border-color:rgba(61,220,132,.4);color:var(--ok)}
+ .verdict.bad{background:rgba(255,95,86,.12);border-color:rgba(255,95,86,.4);color:var(--bad)}
+ table{border-collapse:collapse;width:100%;margin-bottom:14px}
+ td{padding:4px 8px 4px 0;vertical-align:top;border-bottom:1px solid var(--edge)}
+ td:first-child{color:var(--muted);width:120px;white-space:nowrap}
+ .y{color:var(--ok)}.n{color:var(--bad)}
+ /* 电平条是这一页唯一的重点：授权拿到了但读出来一条直线，等于没拿到。
+    PD100X 这支麦峰值只有 0.02 上下，所以按 dBFS 铺而不是线性——线性条上
+    0.02 和 0 看起来一模一样。 */
+ #meter{height:26px;border:1px solid var(--edge);border-radius:6px;overflow:hidden;
+  background:#161b22;margin-bottom:6px}
+ #bar{height:100%;width:0;background:linear-gradient(90deg,#3ddc84,#e3b341 78%,#ff5f56);
+  transition:width .05s linear}
+ #nums{color:var(--muted);font-family:Consolas,monospace;margin-bottom:14px}
+ select,button{background:#161b22;color:#e6edf3;border:1px solid var(--edge);
+  border-radius:6px;padding:5px 10px;font:inherit;max-width:330px}
+ button{cursor:pointer}
+ #sweep{width:100%;border-collapse:collapse;margin:10px 0 14px;font-size:12px}
+ #sweep td{border-bottom:1px solid var(--edge);padding:3px 8px 3px 0}
+ #sweep td:first-child{width:auto;white-space:normal;color:#e6edf3}
+ #sweep td:last-child{width:120px;text-align:right;font-family:Consolas,monospace}
+ #log{font-family:Consolas,monospace;font-size:11px;color:var(--muted);
+  white-space:pre-wrap;border-top:1px solid var(--edge);padding-top:8px;margin-top:4px}
+</style>
+</head>
+<body>
+<h1>麦克风自检</h1>
+<p class="sub">转 Tauri 的第一个验证点。这一页过不了，后面全白做。</p>
+
+<div class="verdict" id="verdict">正在检测…</div>
+
+<table>
+ <tr><td>页面 origin</td><td id="origin">—</td></tr>
+ <tr><td>安全上下文</td><td id="secure">—</td></tr>
+ <tr><td>mediaDevices</td><td id="md">—</td></tr>
+ <tr><td>授权前设备名</td><td id="before">—</td></tr>
+ <tr><td>当前这支</td><td id="fmt">—</td></tr>
+</table>
+
+<div>
+ <select id="dev"></select>
+ <button id="again">换这支重开</button>
+</div>
+
+<div id="meter"><div id="bar"></div></div>
+<div id="nums">峰值 — · RMS — · dBFS —</div>
+
+<table id="sweep"></table>
+<div id="log"></div>
+
+<script>
+const $ = id => document.getElementById(id);
+const log = m => { $('log').textContent += m + '\n'; };
+const yn = (v, y, n) => `<span class="${v?'y':'n'}">${v?(y||'是'):(n||'否')}</span>`;
+
+// 每条结论同时回传给 Rust 落进 stderr：这一页以后每换一次 WebView2 运行时都要
+// 重跑，结论只写在屏幕上就只能靠人眼比对。
+const invoke = window.__TAURI__?.core?.invoke;
+const report = line => { log(line); invoke?.('selfcheck', { line }); };
+
+// 这个阈值要压得很低。PD100X 说话时峰值才 0.02 上下，按"听得见"的直觉取 0.1
+// 会把一支正常工作的麦判成坏的。这里只问一件事：读出来的是不是一条直线。
+const FLOOR = 0.0005;
+
+let ctx = null, stream = null, raf = 0;
+
+function verdict(ok, msg) {
+  const v = $('verdict');
+  v.className = 'verdict ' + (ok ? 'ok' : 'bad');
+  v.textContent = msg;
+  report(`${ok ? 'PASS' : 'FAIL'} ${msg}`);
+}
+
+const inputs = async () =>
+  (await navigator.mediaDevices.enumerateDevices()).filter(d => d.kind === 'audioinput');
+
+async function stop() {
+  if (raf) cancelAnimationFrame(raf), raf = 0;
+  if (stream) stream.getTracks().forEach(t => t.stop()), stream = null;
+  if (ctx) await ctx.close().catch(() => {}), ctx = null;
+}
+
+/// 开一支，接上分析器。返回一个每帧都能问一次电平的函数。
+async function tap(deviceId) {
+  await stop();
+  stream = await navigator.mediaDevices.getUserMedia({
+    audio: deviceId ? { deviceId: { exact: deviceId } } : true,
+  });
+  ctx = new AudioContext();
+  const an = ctx.createAnalyser();
+  an.fftSize = 2048;
+  ctx.createMediaStreamSource(stream).connect(an);
+  const buf = new Float32Array(an.fftSize);
+  const track = stream.getAudioTracks()[0];
+  return {
+    track,
+    read() {
+      an.getFloatTimeDomainData(buf);
+      let peak = 0, sum = 0;
+      for (const v of buf) { const a = Math.abs(v); if (a > peak) peak = a; sum += v * v; }
+      return { peak, rms: Math.sqrt(sum / buf.length) };
+    },
+  };
+}
+
+function paint({ peak, rms }) {
+  const db = rms > 0 ? 20 * Math.log10(rms) : -Infinity;
+  $('bar').style.width = Math.max(0, Math.min(100, (db + 60) / 60 * 100)) + '%';
+  $('nums').textContent =
+    `峰值 ${peak.toFixed(4)} · RMS ${rms.toFixed(4)} · ${db === -Infinity ? '−∞' : db.toFixed(1)} dBFS`;
+}
+
+/// 盯住当前这支，一直画。
+function watch(t) {
+  const tick = () => { paint(t.read()); raf = requestAnimationFrame(tick); };
+  tick();
+}
+
+/// 一支一支开过去，每支采 1.2 秒。默认那支是静音不代表录不了音——UU 虚拟声卡
+/// 没有远程会话在推流时就是一条直线，而它恰好是系统默认。只有"每一支都静音"
+/// 才说明 WebView2 这条路有问题。
+async function sweep(devs) {
+  const rows = [];
+  for (const d of devs) {
+    const name = d.label || d.deviceId.slice(0, 16);
+    let hi = 0, note = '';
+    try {
+      const t = await tap(d.deviceId);
+      const t0 = performance.now();
+      while (performance.now() - t0 < 1200) {
+        const { peak } = t.read();
+        if (peak > hi) hi = peak;
+        paint({ peak, rms: peak });
+        await new Promise(r => setTimeout(r, 30));
+      }
+    } catch (e) {
+      note = `${e.name}`;
+    }
+    const live = hi > FLOOR;
+    rows.push({ name, hi, live, note });
+    report(`  ${live ? '有声' : '静音'} ${hi.toFixed(4)} ${name}${note ? ' · ' + note : ''}`);
+  }
+  $('sweep').innerHTML = rows.map(r =>
+    `<tr><td>${r.name}</td><td class="${r.live?'y':'n'}">${r.note || r.hi.toFixed(4)}</td></tr>`).join('');
+  return rows;
+}
+
+(async () => {
+  $('origin').textContent = location.origin;
+  $('secure').innerHTML = yn(window.isSecureContext);
+  $('md').innerHTML = yn(!!navigator.mediaDevices?.getUserMedia, '有', '不存在');
+  report(`origin=${location.origin} secure=${window.isSecureContext} gUM=${!!navigator.mediaDevices?.getUserMedia}`);
+
+  if (!window.isSecureContext)
+    return verdict(false, 'isSecureContext 是 false —— navigator.mediaDevices 根本不会存在。页面必须从 bundle 资源加载，不能挂裸 http。');
+  if (!navigator.mediaDevices?.getUserMedia)
+    return verdict(false, 'navigator.mediaDevices.getUserMedia 不存在。');
+
+  // 授权之前 label 是空串，这是 W3C 规定的。不空说明 WebView2 把上一次的放行
+  // 记在 user data 目录里了——那一次的 PermissionRequested 才是真正起作用的那次。
+  const pre = await inputs();
+  $('before').textContent = `${pre.length} 支 · ${pre.map(d => d.label || '(空)').join('、') || '—'}`;
+  report(`授权前 ${pre.length} 支，名字：${pre.map(d => d.label || '(空)').join('、') || '—'}`);
+
+  try {
+    await tap(null);
+  } catch (e) {
+    report(`getUserMedia 失败：${e.name}: ${e.message}`);
+    return verdict(false, e.name === 'NotAllowedError'
+      ? 'WebView2 拒了麦克风 —— Rust 侧那个 PermissionRequested 没起作用（没挂上，或者压根没触发）。'
+      : `getUserMedia 抛了 ${e.name}：${e.message}`);
+  }
+
+  const devs = await inputs();
+  $('dev').innerHTML = devs.map(d =>
+    `<option value="${d.deviceId}">${d.label || d.deviceId.slice(0, 16)}</option>`).join('');
+
+  report(`授权拿到了，开始逐支采样（${devs.length} 支，每支 1.2 秒）`);
+  const rows = await sweep(devs);
+  const live = rows.filter(r => r.live);
+
+  if (!live.length) {
+    await stop();
+    return verdict(false, `${rows.length} 支全是静音。授权是下来了，但一支都读不到采样 —— 这才是 WebView2 这条路有问题。`);
+  }
+
+  // 停在能出声的那一支上，让人对着它说话看条子动。
+  const best = live.reduce((a, b) => (b.hi > a.hi ? b : a));
+  const pick = devs.find(d => (d.label || d.deviceId.slice(0, 16)) === best.name);
+  const t = await tap(pick.deviceId);
+  const s = t.track.getSettings();
+  $('dev').value = pick.deviceId;
+  $('fmt').textContent = `${t.track.label} · ${s.sampleRate || '?'} Hz · ${s.channelCount || '?'} ch`;
+  watch(t);
+  verdict(true, `${live.length}/${rows.length} 支能读到采样，最响的是「${best.name}」（峰值 ${best.hi.toFixed(4)}）。麦克风这一关过了。`);
+})();
+
+$('again').onclick = async () => {
+  try {
+    const t = await tap($('dev').value);
+    const s = t.track.getSettings();
+    $('fmt').textContent = `${t.track.label} · ${s.sampleRate || '?'} Hz · ${s.channelCount || '?'} ch`;
+    watch(t);
+  } catch (e) { verdict(false, `${e.name}: ${e.message}`); }
+};
+</script>
+</body>
+</html>

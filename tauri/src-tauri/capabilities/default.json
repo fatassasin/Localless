@@ -1,0 +1,21 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "default",
+  "description": "Localless 的四个窗口都用同一套能力：只开自家命令需要的那些。dialog:default 给的是 message/open/save 三条命令；别加 dialog:allow-confirm，那在 2.7.3 里只是 allow-message 的废弃别名，加了也治不好 window.confirm（原因见 settings.html 里 askOk 上面那段）。windows 这一栏管的是**插件命令**——core:event 的 listen、core:window 的那些调用、dialog、opener；`generate_handler!` 里自家定义的命令不归它管，照样调得通。所以漏了谁，症状不是「那个窗口全废」而是「它收不到任何 emit_to，且一行报错都没有」：实测把 bar 拿掉，点悬浮麦克风仍然记下 toggle(floating-mic)，但药丸收不到 localless://toggle，录音就是不开始。floatmic 今天只调自家那三条命令，漏着也看不出来——给它补上是为了下次有人往 mic.html 里加一句 listen() 时不会撞进这个静默坑。",
+  "windows": ["bar", "mic", "floatmic", "settings"],
+  "permissions": [
+    "core:default",
+    "core:window:allow-start-dragging",
+    "core:window:allow-set-position",
+    "core:window:allow-set-size",
+    "core:window:allow-show",
+    "core:window:allow-hide",
+    "core:window:allow-close",
+    "core:window:allow-set-always-on-top",
+    "core:window:allow-set-ignore-cursor-events",
+    "core:webview:allow-internal-toggle-devtools",
+    "core:event:default",
+    "dialog:default",
+    "opener:default"
+  ]
+}

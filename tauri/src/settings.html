@@ -1,0 +1,1042 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><title>Localless 设置</title><style>
+:root{--bg:#111318;--nav:#0b0d11;--card:#191c23;--line:#292d36;--text:#f1f3f7;--muted:#8e96a6;--accent:#67c7b2;--danger:#ef7777}*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--text);font:13px/1.5 -apple-system,"Segoe UI","Microsoft YaHei",sans-serif}button,input,select,textarea{font:inherit}button{color:inherit}::-webkit-scrollbar{width:10px;height:10px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:#2f343f;border:2px solid transparent;background-clip:content-box;border-radius:6px}::-webkit-scrollbar-thumb:hover{background:#3d4453;border:2px solid transparent;background-clip:content-box}::-webkit-scrollbar-corner{background:transparent}.app{height:100%;display:grid;grid-template-rows:46px 1fr;background:var(--bg)}.titlebar{-webkit-app-region:drag;display:flex;align-items:center;padding:0 15px;border-bottom:1px solid var(--line);font-weight:650}.resize-top{position:fixed;top:0;left:0;right:0;height:4px;-webkit-app-region:no-drag;z-index:50}.mark{width:9px;height:9px;border-radius:50%;background:var(--accent);box-shadow:0 0 12px rgba(var(--accent-rgb),.47);margin-right:9px}.saved{font-size:11px;color:var(--accent);opacity:0;margin-left:10px}.close{-webkit-app-region:no-drag;margin-left:auto;border:0;background:none;width:30px;height:30px;border-radius:7px;cursor:pointer}.close:hover,.icon:hover{background:#ffffff1f;color:var(--text)}.shell{min-height:0;display:grid;grid-template-columns:156px 1fr}.sidebar{background:var(--nav);padding:18px 12px;display:flex;flex-direction:column;border-right:1px solid var(--line)}.nav{border:0;background:none;text-align:left;padding:9px 12px;border-radius:8px;color:var(--muted);cursor:pointer;margin:2px 0}.nav:hover{background:#171a20;color:var(--text)}.nav.on{background:#20242c;color:var(--text);font-weight:650}.offline{margin-top:auto;padding:12px;color:#68707e;font-size:11px;border-top:1px solid #20242b}.content{min-width:0;overflow:auto;padding:26px 30px 34px}.page{display:none;max-width:550px}.page.on{display:block}.page h1{font-size:22px;margin:0 0 2px;letter-spacing:-.3px}.lead{color:var(--muted);margin:0 0 22px}.card{background:var(--card);border:1px solid var(--line);border-radius:12px;margin:0 0 14px;overflow:hidden}.row{display:flex;align-items:center;gap:14px;min-height:58px;padding:11px 14px;border-bottom:1px solid var(--line)}.row:last-child{border-bottom:0}.grow{flex:1;min-width:0}.label{font-weight:600}.hint{font-size:11.5px;color:var(--muted);margin-top:2px}.switch{position:relative;width:42px;height:24px;flex:none}.switch input{position:absolute;opacity:0}.switch span{position:absolute;inset:0;border-radius:20px;background:#343944;cursor:pointer}.switch span:after{content:"";position:absolute;width:18px;height:18px;left:3px;top:3px;border-radius:50%;background:#fff;transition:.18s}.switch input:checked+span{background:var(--accent)}.switch input:checked+span:after{transform:translateX(18px)}.tabs{display:flex;flex-wrap:wrap;gap:7px}.tab,.btn,.seg button{border:1px solid var(--line);background:#22262e;border-radius:8px;padding:7px 11px;cursor:pointer}.tab.on,.seg button.on{background:#e9edf2;color:#111318;border-color:#e9edf2}.tab.add{border-style:dashed;color:var(--accent);display:inline-flex;align-items:center;gap:5px}.tab.add .ico{display:inline-flex}.tab.add svg{width:14px;height:14px}
+.btn.mini{padding:4px 9px;font-size:12px;margin-left:8px}.btn:hover,.tab:hover{filter:brightness(1.15)}.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:650}.btn:disabled{opacity:.45;cursor:default}.control{border:1px solid var(--line);background:#101217;color:var(--text);border-radius:8px;padding:7px 9px;outline:none}.number{width:76px}.input-row{display:none;gap:8px;padding-top:12px}.input-row.show{display:flex}.input-row input{flex:1}.phrase-wrap{padding:14px}.phrase-icon{color:var(--accent);display:inline-flex;align-items:center;opacity:.85}.phrase-icon svg{width:12px;height:12px;stroke-width:1.6}.phrase-actions{display:inline-flex;gap:2px;margin-left:3px}.icon{border:0;background:none;border-radius:999px;padding:0;width:24px;height:24px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;color:var(--muted);transition:background .12s ease,color .12s ease}.icon svg{display:block;stroke-width:1.7}.icon.add{width:auto;height:24px;padding:0 8px;border-radius:999px}.word-chip .icon{width:20px;height:20px}.word-chip.flash{animation:llflash 1.5s ease-out}@keyframes llflash{0%,60%{border-color:var(--accent);box-shadow:0 0 0 2px rgba(var(--accent-rgb),.33)}100%{border-color:#f1f3f799;box-shadow:none}}.word-chip .icon svg{width:13px;height:13px}.icon.add{border:1px solid var(--line);background:#22262e;color:var(--text);flex:none}
+.folder-head .icon.add{margin-left:0}.icon.delete:hover{color:var(--danger)}.seg{display:flex;gap:5px}.seg button{padding:5px 10px;color:var(--muted)}.accent-seg button{display:inline-flex;align-items:center;gap:6px}.accent-seg i{width:9px;height:9px;border-radius:50%;background:currentColor;box-shadow:0 0 7px currentColor}.accent-seg [data-accent=green] i{color:#5fd6b6}.accent-seg [data-accent=white] i{color:#e8ecf2}.accent-seg [data-accent=orange] i{color:#ff9f4a}details{border-top:1px solid var(--line)}summary{padding:13px 14px;cursor:pointer;color:var(--muted)}.prompt-box{padding:0 14px 14px}.prompt-head{display:flex;align-items:center;margin:10px 0 5px;color:var(--muted);font-size:11px}.prompt-head .btn{margin-left:auto;padding:3px 8px}textarea{width:100%;min-height:78px;resize:vertical;background:#0e1014;color:var(--text);border:1px solid var(--line);border-radius:8px;padding:9px;outline:none;font:11.5px/1.55 Consolas,monospace}.history{display:grid;gap:8px}.history-item{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 13px;display:grid;grid-template-columns:1fr auto;gap:8px}.history-text{white-space:pre-wrap;word-break:break-word}.history-word{text-decoration:underline;text-decoration-color:var(--accent);text-decoration-thickness:2px;text-underline-offset:3px}.history-learned{display:flex;align-items:center;gap:5px;margin-top:5px;font-size:11.5px;color:var(--accent)}.history-learned svg{width:12px;height:12px;flex:none}.history-diff{margin-top:5px;padding:7px 9px;background:#0e1014;border:1px solid var(--line);border-radius:7px;font:11.5px/1.6 Consolas,monospace;white-space:pre-wrap;word-break:break-word}.history-diff .diff-del{background:#ef777733;color:#ef9b9b;text-decoration:line-through}.history-diff .diff-ins{background:rgba(var(--accent-rgb),.2);color:var(--accent)}.history-meta{font-size:11px;color:var(--muted);margin-bottom:4px}
+.history-untranscribed{color:var(--muted);font-style:italic}.empty{padding:42px;text-align:center;color:var(--muted);border:1px dashed var(--line);border-radius:12px}.progress{height:5px;background:#292d36;border-radius:5px;overflow:hidden;margin-top:7px}.progress i{display:block;height:100%;width:0;background:var(--accent)}.model-title{font-size:14px;font-weight:650}.model-section{margin-bottom:14px}.model-section-head{position:relative;z-index:2;display:flex;align-items:center;gap:6px;margin:0 2px 7px;font-weight:650}.model-section-head .icon{margin-left:auto}.model-stack{border:1px solid rgba(255,255,255,.12);border-radius:11px;overflow:hidden;background:rgba(20,22,27,.72);backdrop-filter:blur(18px);box-shadow:inset 0 1px rgba(255,255,255,.05),0 8px 24px rgba(0,0,0,.18)}.model-stack:not(.open) .model-card:not(.active){display:none}.model-card{display:flex;align-items:center;gap:10px;min-height:48px;padding:9px 12px;border-bottom:1px solid rgba(255,255,255,.08);background:rgba(52,56,65,.46);color:#e7e9ee;cursor:pointer}.model-card:last-child{border-bottom:0}.model-card.off{background:rgba(13,15,19,.72);color:#747b87}.model-card.installed{background:rgba(52,56,65,.46);color:#f0f1f4}.model-card.active{background:rgba(34,37,44,.82);color:#f5f6f8;box-shadow:inset 0 0 0 1px rgba(255,255,255,.05)}.model-card .model-detail{display:none}.model-stack.open .model-card.active .model-detail{display:block}.model-card .progress{width:100%;margin-top:5px}.model-actions{display:flex;align-items:center;justify-content:flex-end;gap:4px;margin-left:auto;min-width:28px}.model-actions .icon{font-size:16px}.model-chevron{width:28px;height:28px;display:flex;align-items:center;justify-content:center;margin-left:2px;color:inherit;opacity:.85}.model-chevron svg{width:22px;height:22px;transition:transform .18s}.model-stack.open .model-chevron svg{transform:rotate(180deg)}.component-grid{display:grid;gap:6px}.component-card{display:flex;align-items:center;min-height:44px;padding:7px 10px;border:1px solid rgba(255,255,255,.1);border-radius:9px;background:rgba(28,31,37,.68);backdrop-filter:blur(16px)}.rating{display:flex;align-items:center;gap:5px;margin-top:4px;color:#969daa;font-size:10px}.rating-group{display:flex;align-items:center;gap:2px}.rating-pill{width:10px;height:5px;border:1px solid rgba(235,238,243,.72);border-radius:99px;background:transparent}.rating-pill.on{background:var(--accent);border-color:var(--accent)}.badge{font-size:10px;padding:3px 7px;background:rgba(var(--accent-rgb),.14);color:var(--accent);border-radius:12px}.shortcut{min-width:120px;text-align:center}.shortcut.capture{border-color:var(--accent);color:var(--accent)}.folder-list{display:grid;gap:8px;padding:10px}.folder{border:1px solid #343945;background:#15181e;border-radius:9px;overflow:visible}.folder.over{box-shadow:inset 0 0 0 1px var(--accent);background:rgba(var(--accent-rgb),.07)}.folder-head{display:flex;align-items:center;gap:5px;padding:4px 8px;background:#252a33;border-bottom:1px solid #343945;cursor:grab}.folder.tag-dragging{opacity:.35}.folder.tag-drop-before{box-shadow:0 -2px 0 var(--accent)}.folder.tag-drop-after{box-shadow:0 2px 0 var(--accent)}.tag-name{font-weight:650;font-size:12px;background:none;border:1px solid transparent;border-radius:6px;padding:3px 5px;color:var(--text);min-width:60px}.tag-name:hover,.tag-name:focus{border-color:var(--line);background:#101217}.tag-count{font-size:11px;color:var(--muted)}.folder-head .icon{margin-left:0}
+.folder-head .icon.delete{margin-left:auto}.word-grid{display:flex;flex-wrap:wrap;gap:4px;padding:8px}.word-chip{display:inline-flex;align-items:center;gap:4px;min-height:25px;padding:3px 7px;border:1px solid #f1f3f799;background:#484d56;color:#fff;border-radius:6px;cursor:grab;user-select:none}.word-chip.dragging{opacity:.28;}.word-chip.drag-ghost{position:fixed!important;z-index:999;pointer-events:none;margin:0;transform:translate(-50%,-50%) scale(1.05);opacity:.95;border-color:var(--accent);box-shadow:0 8px 22px rgba(0,0,0,.55);transition:none}.drop-marker{width:2px;align-self:stretch;min-height:25px;background:var(--accent);border-radius:1px;box-shadow:0 0 6px var(--accent);flex:0 0 2px;pointer-events:none}body.dragging-word,body.dragging-word *{cursor:grabbing!important}.word-chip{position:relative;overflow:hidden}.word-chip .phrase-actions{position:absolute;right:0;top:0;bottom:0;margin:0;padding:0 5px 0 18px;display:inline-flex;align-items:center;gap:1px;opacity:0;pointer-events:none;transition:opacity .12s ease;background:linear-gradient(90deg,#484d5600,#484d56 30%)}.word-chip:hover .phrase-actions,.word-chip:focus-within .phrase-actions{opacity:1;pointer-events:auto}.word-chip .icon{padding:1px 3px;color:#fff}.weights{padding:4px 0}.weight-row{display:flex;align-items:center;gap:12px;padding:9px 0}.weight-row b{width:22px;font-size:15px}.weight-row input[type=range]{flex:1;accent-color:var(--accent)}.weight-val{width:34px;text-align:right;color:var(--muted);font-variant-numeric:tabular-nums}.scene-tools{display:flex;gap:5px;align-items:center}.scene-name{width:145px}.pipeline{padding:12px 14px}.pipeline-stage{position:relative;padding:4px 0 14px 24px}.pipeline-stage:not(:last-child):before{content:"";position:absolute;left:6px;top:17px;bottom:0;width:1px;background:#3b4049}.pipeline-dot{position:absolute;left:1px;top:8px;width:11px;height:11px;border-radius:50%;border:2px solid #68707c;background:#17191e}.pipeline-stage.running .pipeline-dot{border-color:#b6bbc4;box-shadow:0 0 8px #aeb4be66}.pipeline-stage.completed .pipeline-dot{border-color:#d9dde4;background:#767d88}.pipeline-stage.error .pipeline-dot{border-color:var(--danger);background:#62383b}.pipeline-head{display:flex;align-items:center;gap:8px}.pipeline-name{font-weight:650}.pipeline-meta{font-size:11px;color:var(--muted)}.pipeline-toggle{margin-left:auto;border:0;background:none;padding:0;width:22px;height:22px;display:flex;align-items:center;justify-content:center;color:var(--muted);cursor:pointer;border-radius:50%}.pipeline-toggle:hover{background:#ffffff1f;color:var(--text)}.pipeline-toggle svg{width:16px;height:16px;transition:transform .18s}.pipeline-toggle.open svg{transform:rotate(180deg)}.pipeline-prompt{margin-top:6px;padding:8px 9px;border:1px dashed rgba(255,255,255,.14);border-radius:7px;background:rgba(10,12,15,.75);color:#aab0ba;white-space:pre-wrap;overflow-wrap:anywhere;font:11.5px/1.5 ui-monospace,Consolas,monospace;max-height:260px;overflow:auto;scrollbar-width:thin;scrollbar-color:#3a4049 transparent}.pipeline-prompt::-webkit-scrollbar{width:9px;height:9px}.pipeline-prompt::-webkit-scrollbar-track{background:rgba(0,0,0,.5);border-radius:5px}.pipeline-prompt::-webkit-scrollbar-thumb{background:#3a4049;border:2px solid transparent;background-clip:padding-box;border-radius:5px}.pipeline-prompt::-webkit-scrollbar-thumb:hover{background:#525a66;border:2px solid transparent;background-clip:padding-box}.pipeline-prompt::-webkit-scrollbar-corner{background:transparent}.pipeline-text{margin-top:6px;padding:8px 9px;border:1px solid rgba(255,255,255,.08);border-radius:7px;background:rgba(10,12,15,.55);color:#d8dbe1;white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px;line-height:1.5}.var-list{display:flex;flex-wrap:wrap;gap:5px;padding:0 14px 14px}.var-list.collapsed{display:none}.var-chip{display:inline-flex;align-items:center;gap:5px;border:1px solid rgba(255,255,255,.13);background:rgba(28,31,37,.72);color:#d9dce2;border-radius:7px;padding:4px 8px;cursor:pointer;font:11.5px/1.4 Consolas,monospace}.var-chip:hover{background:rgba(58,63,73,.7)}.var-chip em{font-style:normal;color:var(--muted);font-family:-apple-system,"Segoe UI","Microsoft YaHei",sans-serif}.prompt-card{background:var(--card);border:1px solid var(--line);border-radius:12px;margin:0 0 12px;padding:13px 14px}.preset-bar{display:flex;align-items:center;gap:5px;margin-left:auto}.preset-sel{height:24px;max-width:150px;border-radius:999px;border:1px solid var(--line);background:rgba(28,31,37,.72);color:var(--muted);border-radius:999px;padding:0 22px 0 10px;font-size:11px;cursor:pointer;appearance:none;text-overflow:ellipsis;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238b929e' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'><path d='m6 9 6 6 6-6'/></svg>");background-repeat:no-repeat;background-position:right 6px center;background-size:11px}.preset-sel:hover{color:var(--text);border-color:#4a515c}.preset-sel:focus{outline:none;border-color:var(--accent);color:var(--text)}.preset-sel option{background:#101419;color:#d7dde6}.preset-sel option:checked,.preset-sel option:hover{background:var(--accent-deep);color:var(--accent-soft)}.preset-name{width:110px;height:24px;border:1px solid var(--accent);background:rgba(28,31,37,.72);color:var(--text);border-radius:999px;padding:0 9px;font-size:11px;outline:none}.preset-act{width:24px;height:24px;flex:0 0 24px;border:1px solid var(--line);background:rgba(28,31,37,.72);color:var(--muted);border-radius:999px;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0}.preset-act:hover{background:#ffffff1f;color:var(--text)}.preset-act.dirty{border-color:var(--accent);color:var(--accent)}
+.preset-del{width:24px;height:24px;flex:0 0 24px;border:1px solid rgba(239,68,68,.4);
+background:rgba(239,68,68,.12);color:#ef4444;border-radius:999px;cursor:pointer;
+display:flex;align-items:center;justify-content:center;padding:0}
+.preset-del:hover{background:rgba(239,68,68,.22);border-color:#ef4444}
+.preset-del.confirm{background:rgba(239,68,68,.35);border-color:#ef4444;color:#fff}
+.preset-del svg{width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}.preset-act svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}.prompt-card .prompt-head{margin:0 0 4px;font-size:13px;color:var(--text);font-weight:650}.prompt-card .hint{margin:0 0 8px}.prompt-card textarea{min-height:100px}.range-pair{display:flex;align-items:center;gap:9px;min-width:235px}.range-pair input[type=range]{width:145px;accent-color:var(--accent)}.unit{min-width:24px;color:var(--muted)}.meter-wrap{width:235px}.meter{height:8px;border-radius:8px;overflow:hidden;background:#292d36;margin-bottom:5px}.meter i{display:block;width:0;height:100%;background:var(--accent);transition:width .08s linear,background .12s}.clip-warning{min-height:17px;font-size:11px;color:var(--muted)}.clip-warning.hot{color:var(--danger)}:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.preset-bar{position:relative}
+.preset-sel{opacity:0;position:absolute;right:30px;top:0;height:24px;width:1px;pointer-events:none;z-index:3}
+.preset-bar .preset-sel{pointer-events:auto}
+.preset-btn{height:24px;min-width:34px;border-radius:999px;border:1px solid var(--line);background:rgba(28,31,37,.72);color:var(--muted);font-size:11px;cursor:pointer;display:inline-flex;align-items:center;gap:3px;padding:0 8px 0 10px;white-space:nowrap}
+.preset-btn:hover{color:var(--text);border-color:#4a515c}
+.preset-btn svg{width:11px;height:11px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;flex:0 0 11px}
+.preset-menu{position:absolute;top:28px;right:30px;min-width:64px;background:#101419;border:1px solid rgba(255,255,255,.55);border-radius:8px;padding:2px;z-index:9;box-shadow:0 10px 28px rgba(0,0,0,.55)}
+.preset-menu .opt{padding:3px 7px;border-radius:6px;color:#d7dde6;font-size:10px;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.preset-menu .opt:hover{background:var(--accent-deep);color:var(--accent-soft)}
+.preset-menu .opt.cur{background:var(--accent-deep);color:var(--accent-soft)}
+
+/* ── 黑色毛玻璃 ─────────────────────────────────────────────────────────
+   底色是真黑，不是发灰的近黑；面板一律用极低透明度的白叠在黑上，这样它接住的
+   是背后真实的东西，而不是一块被画成深灰的死板子。窗口本身开了 acrylic
+   （main.js 那侧），所以 .app 只铺到 76% 不透明，桌面透得过来一点点。
+
+   光只有一个来源：左上角侧栏那排波形。这个应用从头到尾只讲一件事——声音，
+   所以辉光从发声的地方出来，往右下衰减。别的地方一律安静：发丝边、不投影、
+   卡片不做悬停浮起。模糊只标层级（窗口壳 / 面板 / 浮层），不是每个元素都糊一遍——
+   历史列表一百行都挂 backdrop-filter，滚动会掉帧。 */
+:root{
+  --void:#0e1116;--pane:rgba(255,255,255,.075);--pane-hi:rgba(255,255,255,.115);
+  --edge:rgba(255,255,255,.115);--edge-hi:rgba(255,255,255,.21);
+  --bg:#0e1116;--nav:transparent;--card:rgba(255,255,255,.075);--line:rgba(255,255,255,.115);
+  --text:#eaeef4;--muted:#8b94a3;--accent:#5fd6b6;--danger:#f2857f;
+  /* 信号色的一家子。全页只有这一处知道它到底是什么颜色，别处一律用这几个变量。
+     以前绿是直接写死在四十来条规则里的，换个配色必定剩下几处没换到——而剩下的
+     恰好是最扎眼的那几处：辉光、主按钮上的字、选中项的底。
+     --accent-rgb 是同一个颜色拆成三个数，好让 rgba() 现调透明度。 */
+  --accent-rgb:95,214,182;
+  --accent-hi:#74e2c5;     /* 亮一档：主按钮按下去之前 */
+  --accent-soft:#a6ecd6;   /* 落在深底上的字 */
+  --accent-ink:#04120e;    /* 反过来：字压在一整块信号色上 */
+  --accent-deep:#0f3a30;   /* 原生下拉里选中那一行的底，那儿只吃实色 */
+}
+/* 配色只换信号色，底不动。这是个常年挂在屏幕角落的窗口，底一亮就没法看了；
+   而「此刻生效的那一个」本来就只靠信号色认，换掉它整页的记号就全跟着换。 */
+html[data-accent=white]{
+  --accent:#e8ecf2;--accent-rgb:232,236,242;--accent-hi:#ffffff;
+  --accent-soft:#f4f6fa;--accent-ink:#0b0d11;--accent-deep:#2a2f38;
+}
+html[data-accent=orange]{
+  --accent:#ff9f4a;--accent-rgb:255,159,74;--accent-hi:#ffb872;
+  --accent-soft:#ffd2a8;--accent-ink:#2a1405;--accent-deep:#3d2412;
+}
+/* 底色必须不透明。Electron 那边窗口是透明的，.app 这层半透明黑压在**桌面**上，
+   合出来就是设计稿的灰黑；Tauri 这个窗是 transparent(false)，同一层半透明黑压在
+   WebView2 的**白色**默认底上——0.82×17+0.18×255≈60，整套配色一起被抬灰两档，
+   看上去就是「颜色太浅」。CSS 一个字没改过，改的是它底下垫着什么。
+   所以这里把底垫成实色，毛玻璃层照旧叠在上面，观感回到 Electron 版。 */
+html,body{background:#0e1116;font-family:"Segoe UI Variable Text","Segoe UI","Microsoft YaHei UI","Microsoft YaHei",sans-serif}
+.app{background:
+  radial-gradient(760px 430px at -10% -14%,rgba(var(--accent-rgb),.1),transparent 62%),
+  #11141a}
+.titlebar{border-bottom:1px solid var(--edge);letter-spacing:.2px;
+  background:linear-gradient(180deg,rgba(255,255,255,.085),rgba(255,255,255,.03));
+  backdrop-filter:blur(28px) saturate(150%)}
+.close:hover,.icon:hover{background:rgba(255,255,255,.1);color:var(--text)}
+.sidebar{border-right:1px solid var(--edge);backdrop-filter:blur(28px) saturate(140%);
+  background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,.025) 55%,transparent)}
+.nav{position:relative;transition:background .14s ease,color .14s ease}
+.nav:hover{background:rgba(255,255,255,.05);color:var(--text)}
+.nav.on{background:rgba(255,255,255,.075);color:var(--text)}
+.nav.on:before{content:"";position:absolute;left:0;top:8px;bottom:8px;width:2px;border-radius:2px;
+  background:var(--accent);box-shadow:0 0 9px rgba(var(--accent-rgb),.75)}
+.offline{border-top:1px solid var(--edge);color:#6d7584;font-size:10.5px;line-height:1.65}
+/* 卡片、行内控件、药丸形：三个圆角档位对应三层结构，不是同一个数字铺满全页 */
+.card,.prompt-card{border-radius:14px;background:var(--pane);border:1px solid var(--edge);
+  backdrop-filter:blur(22px) saturate(140%);box-shadow:inset 0 1px 0 rgba(255,255,255,.06)}
+.tab,.btn,.seg button{background:var(--pane-hi);border:1px solid var(--edge)}
+/* 全页只有一条配色规则：信号色 = 此刻生效的那一个。侧栏的当前页、筛选里选中的
+   分组、正在跑的模型，用的是同一个记号，所以不用每处单独去认。 */
+.tab.on,.seg button.on{background:rgba(var(--accent-rgb),.18);color:var(--accent-soft);
+  border-color:rgba(var(--accent-rgb),.45)}
+.tab.on:hover,.seg button.on:hover{background:rgba(var(--accent-rgb),.26);border-color:rgba(var(--accent-rgb),.6)}
+.btn:hover,.tab:hover{filter:none;background:rgba(255,255,255,.12);border-color:var(--edge-hi)}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);
+  box-shadow:0 0 18px rgba(var(--accent-rgb),.22)}
+.btn.primary:hover{background:var(--accent-hi);border-color:var(--accent-hi)}
+.icon.add{background:var(--pane-hi);border:1px solid var(--edge)}
+.control,textarea{background:rgba(0,0,0,.3);border:1px solid var(--edge)}
+input[type=range]{background:transparent}
+.control:focus,textarea:focus{border-color:rgba(var(--accent-rgb),.55);background:rgba(0,0,0,.4)}
+.switch span{background:rgba(255,255,255,.15)}
+.switch span:after{background:#e8ecf2}
+.switch input:checked+span{background:var(--accent);box-shadow:0 0 14px rgba(var(--accent-rgb),.35)}
+.badge{background:rgba(var(--accent-rgb),.14);border:1px solid rgba(var(--accent-rgb),.3);color:var(--accent)}
+.progress,.meter{background:rgba(255,255,255,.09)}
+.meter i{box-shadow:0 0 10px rgba(var(--accent-rgb),.45)}
+.empty{border:1px dashed var(--edge-hi);background:rgba(255,255,255,.02);border-radius:14px}
+::-webkit-scrollbar-thumb{background:rgba(255,255,255,.14);border:2px solid transparent;background-clip:content-box}
+::-webkit-scrollbar-thumb:hover{background:rgba(255,255,255,.26);border:2px solid transparent;background-clip:content-box}
+/* 量出来的数字一律等宽：上下两行的峰值、时长、时间戳要能按位对齐，
+   不对齐就得一个字一个字读。这是功能，不是排版趣味。 */
+.history-meta,.pipeline-meta,.rating,.weight-val,.clip-warning,.number,.model-detail,
+.player-time,.history-fail .why{font-variant-numeric:tabular-nums}
+.history-item{border-radius:12px;background:rgba(255,255,255,.055);border:1px solid var(--edge);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.06)}
+.history-diff{background:rgba(0,0,0,.32);border:1px solid var(--edge)}
+.diff-del,.diff-ins{padding:1px 4px;border-radius:4px;margin:0 1px}
+.folder{background:rgba(255,255,255,.06);border:1px solid var(--edge);backdrop-filter:blur(18px)}
+.folder.over{background:rgba(var(--accent-rgb),.08)}
+.folder-head{background:rgba(255,255,255,.075);border-bottom:1px solid var(--edge)}
+.tag-name:hover,.tag-name:focus{border-color:var(--edge-hi);background:rgba(0,0,0,.3)}
+.word-chip{background:rgba(255,255,255,.1);border:1px solid var(--edge-hi);color:var(--text)}
+.word-chip .phrase-actions{background:linear-gradient(90deg,rgba(24,27,33,0),rgba(24,27,33,.94) 32%)}
+.model-stack{background:rgba(255,255,255,.065);border-color:var(--edge);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.07)}
+.model-card{background:rgba(255,255,255,.055);border-bottom-color:var(--edge);color:#e4e8ef}
+.model-card.off{background:rgba(0,0,0,.22);color:#6d7483}
+.model-card.installed{background:rgba(255,255,255,.08);color:var(--text)}
+/* 正在跑的那个模型用信号色打底：这是状态，不是装饰 */
+.model-card{position:relative}
+.model-card.active{background:rgba(var(--accent-rgb),.1);color:#f4f7fa;
+  box-shadow:inset 0 0 0 1px rgba(var(--accent-rgb),.22)}
+.model-card.active:before{content:"";position:absolute;left:0;top:0;bottom:0;width:2px;
+  background:var(--accent);box-shadow:0 0 9px rgba(var(--accent-rgb),.7)}
+.component-card{background:rgba(255,255,255,.065);border-color:var(--edge)}
+.var-chip{background:rgba(255,255,255,.08);border-color:var(--edge)}
+.var-chip:hover{background:rgba(255,255,255,.1)}
+
+.pipeline-prompt{background:rgba(0,0,0,.38);border-color:var(--edge-hi)}
+.pipeline-text{background:rgba(255,255,255,.06);border-color:var(--edge)}
+.pipeline-dot{background:#0b0d12}
+.preset-btn,.preset-act,.preset-name,.preset-sel{background:rgba(255,255,255,.08)}
+.preset-act:hover{background:rgba(255,255,255,.12)}
+.preset-menu{background:rgba(9,11,15,.9);border:1px solid var(--edge-hi);
+  backdrop-filter:blur(30px) saturate(160%);box-shadow:0 18px 44px rgba(0,0,0,.6)}
+.preset-menu .opt:hover,.preset-menu .opt.cur{background:rgba(var(--accent-rgb),.16);color:var(--accent-soft)}
+.preset-sel option{background:#080a0e;color:#d7dde6}
+.preset-sel option:checked,.preset-sel option:hover{background:var(--accent-deep);color:var(--accent-soft)}
+
+/* ── 空录音那一行 ───────────────────────────────────────────────────────
+   原来是「（未转录 · 3 秒 · 空 — 录到的声音太轻（整段峰值 0.0136…））」：
+   灰色斜体、括号套括号、中点串起四件事，真正要紧的那句（该去动麦克风）
+   埋在最里层。中文斜体是伪倾斜，还顺手把它读糊了。
+   改成三行，一行一件事：出了什么事 / 量到多少 / 下一步做什么。 */
+.history-untranscribed{color:var(--muted);font-style:normal}
+.history-fail{display:grid;gap:3px;margin-top:1px}
+.history-fail .what{color:var(--text)}
+.history-fail .why,.history-fail .fix{color:var(--muted);font-size:11.5px;line-height:1.55}
+
+/* 自己画的播放器。柱子的高矮是这段录音真实的音量（直接读存档 WAV 算的），
+   所以一段峰值 0.0136 的录音在这儿就是一条贴底的平线——失败的原因看得见，
+   不用去读那串数字。 */
+.player{display:flex;align-items:center;gap:9px;margin-top:9px;max-width:370px;
+  padding:6px 12px 6px 6px;border:1px solid var(--edge);border-radius:999px;
+  background:rgba(0,0,0,.3);backdrop-filter:blur(16px)}
+.player-play{flex:none;width:28px;height:28px;padding:0;border:0;border-radius:50%;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  background:rgba(var(--accent-rgb),.16);color:var(--accent);transition:background .14s ease}
+.player-play:hover{background:rgba(var(--accent-rgb),.28)}
+.player-play svg{width:13px;height:13px}
+.player-wave{flex:1;min-width:0;height:26px;display:flex;align-items:center;gap:2px;
+  cursor:pointer;border-radius:4px}
+.player-wave i{flex:1;min-width:1px;border-radius:1px;background:var(--edge-hi);
+  transition:background .1s linear}
+.player-wave i.played{background:var(--accent)}
+.player-time{flex:none;font-size:11px;color:var(--muted)}
+/* 喇叭＝回放增益。放在播放条右端而不是页顶：要调它的唯一理由是"这一段听不清"，
+   而那一刻手就在这条进度条上。它改的是全局设置，一页所有试听一起变——所以
+   增益条只做一根，点哪个喇叭就挂到哪个喇叭底下。每行各挂一根也能跑，但那会
+   让人以为自己在调某一段录音的音量，而不是一个设置。 */
+.player-gain{flex:none;width:24px;height:24px;padding:0;border:0;border-radius:50%;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  background:transparent;color:var(--muted);transition:background .14s ease,color .14s ease}
+.player-gain:hover,.player-gain.on{background:rgba(var(--accent-rgb),.18);color:var(--accent)}
+.player-gain svg{width:14px;height:14px}
+/* fixed 而不是 absolute：历史列表是滚动的，absolute 会跟着内容滚出可视区，
+   留下一根飘在窗口外面的条子。 */
+.gain-pop{position:fixed;z-index:60;width:252px;padding:11px 13px 10px;
+  border:1px solid var(--edge-hi);border-radius:12px;
+  background:rgba(16,19,24,.94);backdrop-filter:blur(20px) saturate(150%);
+  box-shadow:0 14px 34px rgba(0,0,0,.55)}
+.gain-pop[hidden]{display:none}
+.gain-pop .label{margin-bottom:9px}
+.gain-pop .range-pair{min-width:0}
+.gain-pop .range-pair input[type=range]{flex:1;width:auto}
+.gain-pop .hint{margin:9px 0 0;line-height:1.55}
+/* 历史默认折起来。文字一直在，折的是播放器：找一句话时要读的是文字，
+   而一页一百条、每条底下垫一个播放器，滚动条就得翻半天。 */
+.history-fold{display:none}
+.history-item.open .history-fold{display:block}
+.history-item.foldable .history-head{cursor:pointer}
+.fold-caret{display:inline-flex;vertical-align:-2px;margin-right:5px;
+  transition:transform .16s ease}
+.fold-caret svg{width:12px;height:12px}
+.history-item.open .fold-caret{transform:rotate(90deg)}
+/* 说明默认不占地方。一页三四十行、每行底下再垫一行小字，真正要找的那一行
+   反而埋在里面；而这些话十次有九次是不用看的。鼠标停在标题上才浮出来。
+
+   用绝对定位而不是 display:none→block：后者一展开，底下所有行都往下弹一截，
+   眼睛正在扫的那一行会当场跑掉。浮层不占位，整页纹丝不动。
+
+   只认紧跟在标题后面的那个 .hint。模型页那些卡片里的 .hint 说的是「正在使用」
+   「备用 · 当前未调用」——那是状态不是说明，藏起来就真的看不见了。 */
+.card{overflow:visible}   /* 不然浮层会被卡片的圆角裁掉半截 */
+.row .grow,.tip{position:relative}
+.tip{display:inline-block}
+/* 不写 cursor:help：那个带问号的光标等于在鼠标底下又画一遍「这儿有说明」，
+   而说明这时候已经浮出来了。光标保持原样，眼睛直接看字。 */
+.row .label,.tip>.label{width:max-content;max-width:100%}
+.row .label+.hint,.tip>.label+.hint{position:absolute;left:0;top:calc(100% + 7px);
+  z-index:40;width:max-content;max-width:min(430px,calc(100vw - 210px));
+  margin:0;padding:9px 12px;font-weight:400;white-space:pre-line;
+  border:1px solid var(--edge-hi);border-radius:10px;line-height:1.55;
+  background:rgba(16,19,24,.94);backdrop-filter:blur(20px) saturate(150%);
+  box-shadow:0 14px 34px rgba(0,0,0,.55);
+  opacity:0;visibility:hidden;transform:translateY(-4px);pointer-events:none;
+  transition:opacity .14s ease,transform .14s ease,visibility .14s}
+.row .label:hover+.hint,.tip>.label:hover+.hint{opacity:1;visibility:visible;
+  transform:none}
+/* 模型页最后一栏（组件）那段说明最长，往下浮会掉出窗口，翻到标题上方去。 */
+.model-section:last-child .tip>.label+.hint{top:auto;bottom:calc(100% + 7px)}
+/* 「仅在这些程序显示」。原先是一个逗号分隔的文本框：那要求用户凭记忆把进程名
+   拼对，拼错了不会报错，只会「悬浮麦再也不出来」，而且页面上看不出是为什么。
+   改成点一下就列出在跑的程序、选中的变成药丸，和 QuotaSidebar 那一栏同一套。
+
+   存盘格式一个字没动，还是那串逗号分隔的字符串——micwatch 照旧读它，Electron 版
+   共用同一份设置文件也照旧认。药丸只是这串字符串的一个视图。
+
+   下拉是自己拿 div 拼的，不是 <datalist>/<select>：Chromium 的原生弹出层画在页面
+   之外，CSS 伸不进去，滚动条永远是系统那根白的，压在这套黑毛玻璃上极刺眼。 */
+/* 下拉要盖住下面那张卡。.card 挂了 backdrop-filter＝自成一个层叠上下文，
+   下拉的 z-index 被关在本卡里出不去，光靠把它调大没用——后面那张卡照样压上来。
+   得把**整张卡**抬起来。 */
+.card.proc-card{position:relative;z-index:30}
+.row.proc-row{flex-direction:column;align-items:stretch;gap:9px}
+.proc-chips{display:flex;flex-wrap:wrap;gap:5px;max-height:96px;overflow-y:auto}
+.proc-chip{display:inline-flex;align-items:center;gap:6px;padding:3px 5px 3px 9px;
+  border-radius:12px;background:rgba(255,255,255,.1);border:1px solid var(--edge-hi);
+  color:var(--text);font-size:12px}
+/* 正在跑的那几个描一圈信号色：名单里躺着一个从来没生效过的错别字，光看字看不出来。 */
+.proc-chip.live{border-color:rgba(var(--accent-rgb),.5)}
+.proc-chip .x{cursor:pointer;color:var(--muted);line-height:1;padding:0 3px;border-radius:6px}
+.proc-chip .x:hover{color:var(--danger);background:rgba(255,255,255,.1)}
+.proc-empty{font-size:11.5px;color:var(--muted)}
+.addproc{display:flex;gap:6px;position:relative}
+.addproc .control{flex:1;min-width:0}
+.addproc .btn{margin-left:0;flex:none}   /* .btn.mini 自带 margin-left，这里靠 gap */
+.proclist{display:none;position:absolute;top:calc(100% + 4px);left:0;right:0;z-index:45;
+  max-height:184px;overflow-y:auto;padding:4px;border-radius:10px;
+  border:1px solid var(--edge-hi);background:rgba(16,19,24,.96);
+  backdrop-filter:blur(20px) saturate(150%);box-shadow:0 14px 34px rgba(0,0,0,.55)}
+.proclist.open{display:block}
+.proclist div{padding:6px 8px;border-radius:6px;font-size:12.5px;cursor:pointer;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.proclist div:hover,.proclist div.sel{background:rgba(var(--accent-rgb),.22)}
+.proclist .none{color:var(--muted);cursor:default}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+</style></head><body><i class="resize-top"></i><div class="app"><header class="titlebar"><span class="mark"></span>Localless 设置 <span class="saved" id="saved">已保存</span><button class="close" id="close">✕</button></header><div class="shell"><aside class="sidebar"><button class="nav on" data-page="dictation">听写</button><button class="nav" data-page="phrases">词语</button><button class="nav" data-page="history">历史</button><button class="nav" data-page="models">模型</button><button class="nav" data-page="prompts">提示词</button><button class="nav" data-page="advanced">高级</button><div class="offline">● 本地运行<br>不联网，不上传</div></aside><main class="content">
+<section class="page on" id="page-dictation"><h1>听写</h1><p class="lead">语言、上下文与触发方式。</p><div class="card"><div class="row"><div class="grow"><div class="label">开机自启</div><div class="hint">登录 Windows 后自动启动 Localless</div></div><label class="switch"><input id="openAtLogin" type="checkbox"><span></span></label></div><div class="row"><div class="grow"><div class="label">自动清理剪贴板</div><div class="hint">听写不进 Win+V。关掉＝每条在 Win+V 里留一条记录，排在你原来复制的内容下面</div></div><label class="switch"><input id="clipboardAutoCleanEnabled" type="checkbox"><span></span></label></div><div class="row"><div class="grow"><div class="label">录音时静音其它声音</div><div class="hint">按住触发键时静音其它程序，松开恢复。不碰系统总音量</div></div><label class="switch"><input id="muteWhileRecording" type="checkbox"><span></span></label></div><div class="row"><div class="grow"><div class="label">松键后继续录（毫秒）</div><div class="hint">免得最后几个字被切掉。默认 1000，填 0＝松手立刻停</div></div><input class="control number" id="recordTailMs" type="number" min="0" max="3000" step="100"></div><div class="row"><div class="grow"><div class="label">自动检测语言</div><div class="hint">关闭后仅在下方选中的语言内识别</div></div><label class="switch"><input id="autoDetect" type="checkbox"><span></span></label></div><div class="row"><div class="grow"><div class="tabs" id="languageTabs"></div></div></div></div><div class="card proc-card"><div class="row"><div class="grow"><div class="label">Qwen3-ASR 上下文预算</div><div class="hint">只影响词表与聚焦上下文，不是模型硬上限</div></div><div class="range-pair"><input id="qwenCtxMaxCharsRange" type="range" min="100" max="4000" step="20"><input class="control number" id="qwenCtxMaxChars" type="number" min="100" max="4000" step="20"><span class="unit">字</span></div></div><div class="row"><div class="grow"><div class="label">麦克风</div><div class="hint">「自动」＝跟随系统默认，接远控时换到 UU、断开换回。指名某一支后不再自动切换</div></div><select class="control" id="micDeviceSelect"><option value="">自动（跟随系统默认）</option></select></div><div class="row"><div class="grow"><div class="label">麦克风增益</div><div class="hint">正式录音由引擎应用，下方电平仅供预览</div></div><div class="range-pair"><input id="micGainDbRange" type="range" min="-12" max="30" step="1"><input class="control number" id="micGainDb" type="number" min="-12" max="30" step="1"><span class="unit">dB</span></div></div><div class="row"><div class="grow"><div class="label">输入电平</div><div class="hint">按当前增益预测；红色表示有削波风险</div></div><div class="meter-wrap"><div class="meter" aria-label="麦克风输入电平"><i id="micMeterFill"></i></div><div class="clip-warning" id="micClipWarning">等待麦克风信号</div></div></div><div class="row"><div class="grow"><div class="label">噪声门 + 高通滤波</div><div class="hint">压低底噪和低频轰鸣，下一段录音生效</div></div><label class="switch"><input id="noiseReductionEnabled" type="checkbox"><span></span></label></div><div class="row"><div class="grow"><div class="label">悬浮麦克风</div><div class="hint">屏幕上的可拖动按钮，点一下就开录</div></div><button class="btn mini" id="resetFloatingMic">重置位置</button><label class="switch"><input id="floatingMicEnabled" type="checkbox"><span></span></label></div><div class="row"><div class="grow"><div class="label">仅在手机/平板远程时显示</div><div class="hint">只在没有实体键盘的设备远程时出现；判不出来就显示</div></div><label class="switch"><input id="floatingMicRemoteOnly" type="checkbox"><span></span></label></div><div class="row"><div class="grow"><div class="label">悬浮麦克风大小</div><div class="hint">5–100 px，默认 72。太小会点不中</div></div><div class="range-pair"><input id="floatingMicSizeRange" type="range" min="5" max="100" step="1"><input class="control number" id="floatingMicSize" type="number" min="5" max="100" step="1"><span class="unit">px</span></div></div><div class="row proc-row"><div class="grow"><div class="label">仅在这些程序显示</div><div class="hint">点输入框从正在运行的程序里挑，也能直接打字（匹配进程名或窗口标题）。留空＝始终显示</div></div><div class="proc-chips" id="procChips"></div><div class="addproc"><input class="control" id="procInput" autocomplete="off" spellcheck="false" placeholder="进程名或标题关键词，如 chrome"><div class="proclist" id="procList"></div><button class="btn mini" id="procAdd">添加</button></div></div></div><div class="card"><div class="row"><div class="grow"><div class="label">触发按键</div><div class="hint">点击右侧后按下新的单键或组合键</div></div><button class="btn shortcut" id="shortcut">RightAlt</button></div><div class="row"><div class="grow"><div class="label">历史保留时间</div><div class="hint">决定历史页和数据库中的保存期限</div></div><select class="control" id="historyRetention"><option value="forever">永远</option><option value="30d">1 个月</option><option value="7d">1 周</option><option value="3d">3 天</option><option value="1d">1 天</option></select></div></div></section>
+<section class="page" id="page-phrases"><h1>词语</h1><p class="lead">固定专名的拼写，并管理从修改中学到的词。</p><div class="card"><div class="row"><div class="grow"><div class="label">启用自定义短语</div><div class="hint">关掉就不向模型注入词语</div></div><label class="switch"><input id="customWordsEnabled" type="checkbox"><span></span></label></div><div class="row"><div class="grow"><div class="label">学习修改后的名词</div><div class="hint">把你对粘贴文本的专名修正加入自动词语</div></div><label class="switch"><input id="learnNamesFromEdits" type="checkbox"><span></span></label></div></div><div class="card"><div class="row"><div class="grow"><div class="seg" id="wordFilter"><button class="on" data-filter="all">全部</button><button data-filter="manual">手动</button><button data-filter="learned">自动</button></div></div><span class="hint">拖拽词语可排序</span><button class="btn mini" id="importWords">导入</button><button class="btn mini" id="exportWords">导出</button></div><div class="folder-list" id="tagGroups"></div><div class="row"><button class="tab add" id="addTag"><span class="ico"></span>新建分组</button><div class="grow"></div></div></div></section>
+<section class="page" id="page-history"><h1>历史</h1><p class="lead">点一条展开它的录音。改过的附上<span class="diff-del">改前</span><span class="diff-ins">改后</span>对照。</p><div class="history" id="historyList"></div><div class="gain-pop" id="gainPop" hidden><div class="label">回放增益</div><div class="range-pair"><input id="playbackGainDbRange" type="range" min="0" max="40" step="1"><input class="control number" id="playbackGainDb" type="number" min="0" max="40" step="1"><span class="unit">dB</span></div><div class="hint">只放大这里试听的声音，不动录音文件，也不影响识别</div></div></section>
+<section class="page" id="page-models"><h1>模型</h1><p class="lead">选择当前使用的模型。</p><div id="modelSections"></div><div class="row" style="padding:10px 0 0;border:0;justify-content:flex-end"><button class="btn" id="openModels">打开模型文件夹</button></div></section>
+<section class="page" id="page-prompts"><h1>提示词</h1><p class="lead">逐个环节修改提示词。用 <code>{{变量}}</code> 插入实时内容。</p><div class="card"><div class="row" id="varHead" style="cursor:pointer"><div class="grow"><div class="label">可用变量</div><div class="hint">点击插入到光标处。没用上的变量按固定顺序附在末尾</div></div><button class="pipeline-toggle" id="varToggle" type="button" aria-label="展开/折叠"></button></div><div class="var-list collapsed" id="varList"></div></div><div id="promptCards"></div></section>
+<section class="page" id="page-advanced"><h1>高级</h1><p class="lead">设备与最近一次发给模型的 prompt。</p><div class="card"><div class="row"><div class="grow"><div class="label">用内存跑模型</div><div class="hint">显卡被别的程序占满时打开：模型全进内存，不碰显存，会明显变慢</div></div><label class="switch"><input id="cpuOnlyEnabled" type="checkbox"><span></span></label></div><div class="row"><div class="grow"><div class="label">自动切换设备</div><div class="hint">显存够了自己搬回显卡，不够就退回内存把这次做完，不弹「显存不足」</div></div><label class="switch"><input id="autoDeviceEnabled" type="checkbox"><span></span></label></div><div class="row"><div class="grow"><div class="label">语音模型常驻显存</div><div class="hint">模型常驻显存，省掉每次约 2 秒冷加载，约占 3.4 GB。下次启动生效</div></div><label class="switch"><input id="asrKeepLoaded" type="checkbox"><span></span></label></div></div><div class="card"><div class="row"><div class="grow"><div class="label">上一次发给语音识别的 prompt</div><div class="hint">变量已展开，这就是模型实际收到的原文</div></div><button class="btn mini" id="copyAsrPrompt">复制</button></div><div class="pipeline"><div class="pipeline-prompt" id="asrPromptView">完成一次听写后，这里会显示实际发出去的 prompt。</div></div></div><div class="card"><div class="row"><div class="grow"><div class="label">配色</div><div class="hint">只换信号色和托盘图标，窗口底色不变</div></div><div class="seg accent-seg" id="accentSeg"><button data-accent="green"><i></i>绿</button><button data-accent="white"><i></i>白</button><button data-accent="orange"><i></i>橙</button></div></div></div><div class="card"><div class="row"><div class="grow"><div class="label">打开录音文件夹</div><div class="hint">每条听写的音频都在这儿。超过 2 GB 从最旧的开始删</div></div><button class="btn" id="openRecordings">打开</button></div></div></section>
+</main></div></div><script>
+// Tauri 版的边界。Electron 那边这一行 require 进来的四样——ipcRenderer / clipboard /
+// fs / better-sqlite3——这边一样都没有：文件、注册表、SQLite 只有 Rust 侧碰得到，
+// 页面能做的只有 invoke 和 listen。
+//
+// 没有做 ipcRenderer 的通用垫片，是故意的：那样漏改一处会静默变成"按钮没反应"，
+// 而逐个换成 invoke，漏掉的那处当场就是 ReferenceError。
+//
+// 整段包进 async IIFE：Electron 版 load() 是同步读文件，这边读设置要过一次 IPC。
+// 不用 <script type="module"> 是因为模块强制严格模式，六百行业务代码里只要有一处
+// 隐式全局就会在运行时才炸——IIFE 保住的是和那边逐字相同的语义。
+(async()=>{
+const {invoke}=window.__TAURI__.core,{listen}=window.__TAURI__.event;
+// 页面里的异常必须有地方落。整份脚本是一个 IIFE，中间任何一句抛了，后面所有
+// 监听器就都没注册上——表现成「某个开关/某个按钮没反应」，而窗口本身好端端的，
+// 屏幕上没有一个字提示出过错。Tauri 是隐藏窗口启动的，console 也没人看得到，
+// 所以一律转发进 %TEMP%\localless-main-debug.log，和 Rust 那侧的日志并在一起。
+const jsLog=line=>{try{invoke('dict_log',{line:'[设置页] '+line})}catch{}};
+window.addEventListener('error',e=>jsLog(`${e.message} @ ${e.filename||'?'}:${e.lineno}:${e.colno}`));
+window.addEventListener('unhandledrejection',e=>jsLog('未处理的 rejection：'+(e.reason&&e.reason.message||e.reason)));
+// 走自家那条 Win32 路而不是 navigator.clipboard：只有它能在写入时挂上
+// CanIncludeInClipboardHistory=0，让内容能 Ctrl+V 却不进 Win+V 的历史。
+const clipboard={writeText:t=>invoke('copy_text',{text:t}).catch(e=>console.error('[settings] copy',e))};
+// 二次确认。**不能用 window.confirm**：tauri-plugin-dialog 2.7.3 注入的那段全局覆盖
+// 脚本把它改成调 plugin:dialog|confirm，而这一版的 Rust 侧只剩 message/open/save
+// 三条命令——confirm 早删了，脚本没跟着改。结果是 window.confirm 返回一个 rejected
+// Promise，if(它) 恒为真，删模型那颗按钮连框都不弹就把模型删了。加权限也救不回来：
+// dialog:allow-confirm 在这一版只是 allow-message 的废弃别名。
+// window.__TAURI__.dialog.confirm 走的是还活着的 message 命令，才是能用的那条。
+// 取不到就返回 false：这是个不可撤销的操作，拿不准就别做。
+const askOk=async m=>{const f=window.__TAURI__?.dialog?.confirm;if(!f)return false;
+ try{return await f(m)}catch(e){console.error('[settings] confirm',e);return false}};
+const DEFAULT_TAGS=[{id:'general',name:'通用'},{id:'people',name:'人名'},{id:'projects',name:'编程项目'}];
+// 提示词默认值的唯一真源是 app/prompts.json，引擎与本页共读一份。以前这里硬编码了一份副本，
+// 结果改了引擎那份、这边「恢复默认」拿到的还是旧的——同一个坑踩过两次，别再把字面量抄回来。
+// prompts.json 和这一页一起打进了 frontendDist，所以 fetch 同级路径就能拿到，
+// 不用再去猜 __dirname 和 file:// 路径怎么互转。
+const PROMPT_FILE=await fetch('prompts.json').then(r=>{if(!r.ok)throw new Error('prompts.json 读不到：HTTP '+r.status);return r.json()});
+const DEFAULT_PROMPTS=PROMPT_FILE.defaults,LEGACY_PROMPTS=PROMPT_FILE.legacy||{};
+const DEFAULTS=Object.assign({promptPresets:{},promptPresetAt:{},cpuOnlyEnabled:false,autoDeviceEnabled:true,asrKeepLoaded:true,autoDetect:true,languages:['zh-Hans','en'],customWords:[],customWordsEnabled:true,wordTags:DEFAULT_TAGS,learnNamesFromEdits:true,historyRetention:'forever',dictationShortcut:'RightAlt',speechModel:'qwen3-asr-1.7b-hf',learnModel:'qwen3-4b',qwenCtxMaxChars:480,micGainDb:0,playbackGainDb:8,micDeviceId:'',micDeviceLabel:'',noiseReductionEnabled:false,clipboardAutoCleanEnabled:true,accentColor:'green',recordTailMs:1000,floatingMicEnabled:false,floatingMicRemoteOnly:true,floatingMicSize:72,floatingMicApps:'',floatingMicPosition:null},DEFAULT_PROMPTS);
+const S=(d,f)=>'<svg viewBox="0 0 24 24" width="14" height="14" fill="'+(f||'none')+'" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+d+'</svg>';const ICO={trash:S('<path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/>'),pencil:S('<path d="M4 20h4l10.5-10.5a2.8 2.8 0 0 0-4-4L4 16v4Z"/>'),plus:S('<path d="M12 5v14M5 12h14"/>'),down:S('<path d="M12 4v12m0 0 5-5m-5 5-5-5M5 20h14"/>'),check:S('<path d="m5 13 4 4L19 7"/>'),close:S('<path d="M6 6l12 12M18 6 6 18"/>'),
+copy:S('<rect x="9" y="9" width="11" height="12" rx="2.5"/><path d="M15 5.5A2.5 2.5 0 0 0 12.5 3H6.5A2.5 2.5 0 0 0 4 5.5v9A2.5 2.5 0 0 0 6.5 17"/>'),undo:S('<path d="M9 14 4 9l5-5M4 9h9a7 7 0 0 1 0 14h-3" transform="translate(0 -2)"/>'),leaf:S('<path d="M4 20c0-8 5-13 16-14 1 10-4 15-12 15H4Zm4-3c3-4 6-6 9-7"/>'),spark:S('<path d="M12 3.5 13.7 9a3.5 3.5 0 0 0 2.3 2.3L21.5 13l-5.5 1.7A3.5 3.5 0 0 0 13.7 17L12 22.5 10.3 17A3.5 3.5 0 0 0 8 14.7L2.5 13 8 11.3A3.5 3.5 0 0 0 10.3 9L12 3.5Z"/>')};
+ for(const [id,k] of [['addScene','plus'],['deleteScene','trash'],['addTag','plus']]){const e=document.getElementById(id);if(e){const t=e.querySelector('.ico');(t||e).innerHTML=ICO[k]}}
+ let st=await load(),db=await invoke('history_available');let activeFilter='all',editing=null,openRow=null;let flashWordId=null;
+async function load(){let x={};try{x=await invoke('settings_read')}catch{};const s=Object.assign({},DEFAULTS,x),t=Date.now();s.wordTags=(s.wordTags&&s.wordTags.length?s.wordTags:DEFAULT_TAGS).map(g=>({id:g.id,name:g.name}));const ids=new Set(s.wordTags.map(g=>g.id));s.customWords=(s.customWords||[]).map((w,i)=>{const o=typeof w==='string'?{id:'manual-'+i+'-'+t,text:w,origin:'manual',createdAt:t+i,updatedAt:t+i}:Object.assign({},w);if(!ids.has(o.tag))o.tag=s.wordTags[0].id;if(o.order==null)o.order=i;return o});
+let dirty=false;
+// 保存值逐字等于某条旧默认 = 用户从没自定义过，升级到新默认；真改过一个字就原样保留。
+// 「转写原文：{{text}}」只是占位槽不是措辞，比对时忽略，加没加它渲染结果一样。
+const bare=v=>String(v||'').replace(/[ \t]*转写原文[:：][ \t]*\n?\s*(\{\{\s*text\s*\}\}|\{text\})?/g,'').trim();
+for(const k in LEGACY_PROMPTS){const cur=s[k];
+ if(typeof cur==='string'&&(LEGACY_PROMPTS[k]||[]).some(o=>bare(cur)===bare(o))){s[k]=DEFAULT_PROMPTS[k];dirty=true}}
+// 中文拆简繁后旧的 'zh' 迁到 'zh-Hans'，顺手去重（否则语言卡会同时亮简中并留一条死码）。
+const langs=[...new Set((s.languages||[]).map(x=>x==='zh'?'zh-Hans':x))];
+if(JSON.stringify(langs)!==JSON.stringify(s.languages)){s.languages=langs;dirty=true}
+// 引擎直接读这个文件，所以迁移要立刻落盘，不能等下一次 save()。
+if(dirty){try{await invoke('settings_merge',{patch:s})}catch{}}
+return s}
+let saveTimer,savePending=false;
+function save(){clearTimeout(saveTimer);savePending=true;saveTimer=setTimeout(async()=>{savePending=false;try{const next=await invoke('settings_save',{patch:st});if(next&&Object.prototype.hasOwnProperty.call(next,'floatingMicPosition'))st.floatingMicPosition=next.floatingMicPosition;saved.textContent='已保存';saved.style.opacity=1;setTimeout(()=>saved.style.opacity=0,800);await invoke('settings_changed')}catch(error){saved.textContent='保存失败';saved.style.opacity=1;console.error('[settings] save failed',error)}},180)}
+// save() 有 180ms 防抖，而关窗是立刻销毁 webview 的：改完开关马上关窗，定时器
+// 永远不触发，改动就丢了（"悬浮麦克风大小和开关状态未被记忆"就是这么来的）。
+// Electron 那边靠 ipcRenderer.sendSync 挡住渲染进程直到主进程写完；Tauri 没有
+// 同步 IPC，改成 Rust 拦下关闭请求 → 发 settings-flush → 这边存完回调
+// settings_close_force → 真关。Rust 那侧带 700ms 超时强关，所以这里出任何异常
+// 都不会变成"设置窗口关不掉"。
+async function flushSave(){if(!savePending){return}clearTimeout(saveTimer);savePending=false;try{const next=await invoke('settings_save',{patch:st});if(next&&Object.prototype.hasOwnProperty.call(next,'floatingMicPosition'))st.floatingMicPosition=next.floatingMicPosition;await invoke('settings_changed')}catch(error){console.error('[settings] flush failed',error)}}
+listen('localless://settings-flush',async()=>{await flushSave();await invoke('settings_close_force')});
+let previewStream=null,previewContext=null,previewAnalyser=null,previewFrame=0,previewPending=false,previewSource=null,previewFilter=null;
+// 噪声门状态。阈值与 engine.py 的 AudioProcessor._noise_gate 逐字对齐，
+// 所以电平条上看到的压制程度就是实际会录进去的。
+let gateFloor=0.0005,gateOpen=false,gateEnv=0.06,gateEverOpen=false;
+function resetMicPreviewGate(){gateFloor=0.0005;gateOpen=false;gateEnv=0.06;gateEverOpen=false}
+// 降噪开关一变就重接链路：开启＝80Hz 高通（对应引擎的一阶高通）+ 噪声门，
+// 关闭＝直接旁路。不用重开窗口，切换立刻在电平条上看得见。
+function resetMicPreviewDsp(){
+  if(!previewContext||!previewSource||!previewAnalyser)return;
+  try{previewSource.disconnect()}catch{}
+  if(previewFilter){try{previewFilter.disconnect()}catch{}}
+  if(st.noiseReductionEnabled){
+    if(!previewFilter){previewFilter=previewContext.createBiquadFilter();previewFilter.type='highpass';previewFilter.frequency.value=80}
+    previewSource.connect(previewFilter);previewFilter.connect(previewAnalyser);
+  } else previewSource.connect(previewAnalyser);
+  resetMicPreviewGate();
+}
+// 预览必须开用户指名的那支，否则设置页听得见、听写却录另一支——「设置里测试可以」
+// 这句话正是这么来的，它让人以为麦克风没毛病，白查了两轮。
+const MIC_BASE={channelCount:1,echoCancellation:false,noiseSuppression:false,autoGainControl:false};
+// 探一支麦克风是不是**逐位为零**。手法和 recorder.js 的 micAlive 一字不差，包括那个
+// gain=0 的出口：没接到 destination 的子图不保证会被驱动，取到的会是一片零，而那和
+// 「设备是哑的」长得一模一样。两处判据必须同源，不然预览和实录会各挑各的麦克风。
+const PREVIEW_PROBE_MS=250;
+async function previewAlive(stream,budget){
+  let ctx=null,node=null,gain=null;
+  try{
+    ctx=new AudioContext();await resumeAudio(ctx);
+    // 上面那条注释说的自动播放策略在这里更毒：suspended 的 ctx 读出来恒等于 0，
+    // 会把一支好麦克风判成哑的，然后换到另一支同样读不出东西的设备上去。
+    // 探不动就一概算活，宁可漏判。
+    if(ctx.state!=='running')return true;
+    const an=ctx.createAnalyser();an.fftSize=1024;
+    node=ctx.createMediaStreamSource(stream);
+    gain=ctx.createGain();gain.gain.value=0;
+    node.connect(an);an.connect(gain);gain.connect(ctx.destination);
+    const buf=new Float32Array(an.fftSize),deadline=performance.now()+budget;
+    for(;;){
+      an.getFloatTimeDomainData(buf);
+      for(let i=0;i<buf.length;i++)if(buf[i]!==0)return true;
+      if(performance.now()>=deadline)return false;
+      await new Promise(r=>setTimeout(r,20));
+    }
+  }catch{return true}
+  finally{
+    try{if(node)node.disconnect()}catch{}
+    try{if(gain)gain.disconnect()}catch{}
+    try{if(ctx)await ctx.close()}catch{}
+  }
+}
+async function openPreviewMic(){
+  const pick=String(st.micDeviceId||'');
+  // 指名的设备可能已经不在了（远程断开）。退回系统默认好歹让电平条还有东西可显示，
+  // 但设置里的选择一个字都不动——人还在远程那头，设备一会儿就回来了。
+  if(pick){
+    try{return await navigator.mediaDevices.getUserMedia({audio:Object.assign({deviceId:{exact:pick}},MIC_BASE)})}
+    catch{return navigator.mediaDevices.getUserMedia({audio:MIC_BASE})}
+  }
+  // 「自动」挡下不能就这么拿系统默认那支。实测系统默认是 Virtual Desktop Audio 这类
+  // 虚拟声卡时，它通着电、轨道 live、muted=false、enabled=true，送的却是逐位为零的
+  // 数字静音；同一时刻真正在录的 PD100X 峰值 0.04、转得出 31 个字。于是设置页显示
+  // 的和实际录的根本不是同一支麦克风，屏幕上只剩一条不动的电平条——「输入电平完全
+  // 不带动」就是这么来的，查麦克风、查权限、查增益全都查不到东西。
+  //
+  // 录音那条路（recorder.js 的 micCandidates）早就会把这种设备沉到队尾，预览这条路
+  // 一直没有。按同一个判据探一轮，哑的就往下试实体设备。
+  const first=await navigator.mediaDevices.getUserMedia({audio:MIC_BASE});
+  if(await previewAlive(first,PREVIEW_PROBE_MS))return first;
+  const firstLabel=(first.getAudioTracks()[0]||{}).label||'';
+  let ins=[];
+  try{ins=(await navigator.mediaDevices.enumerateDevices())
+    .filter(d=>d.kind==='audioinput'&&d.deviceId&&d.deviceId!=='default'&&d.deviceId!=='communications')}catch{}
+  for(const d of ins){
+    if(d.label&&d.label===firstLabel)continue; // 就是刚才那支，别再探一遍
+    let s=null;
+    try{s=await navigator.mediaDevices.getUserMedia({audio:Object.assign({deviceId:{exact:d.deviceId}},MIC_BASE)})}catch{continue}
+    if(await previewAlive(s,PREVIEW_PROBE_MS)){
+      try{first.getTracks().forEach(t=>t.stop())}catch{}
+      jsLog('预览换麦克风：'+(firstLabel||'系统默认')+' 送数字静音 → 改用 '+((s.getAudioTracks()[0]||{}).label||'无名'));
+      return s;
+    }
+    try{s.getTracks().forEach(t=>t.stop())}catch{}
+  }
+  // 一支活的都没有。留住第一条：电平条至少还有东西可显示，而下面那行警告会把
+  // 它的名字摆出来，人才知道该动的是麦克风下拉框而不是增益。
+  return first;
+}
+function dictationPageVisible(){return document.getElementById('page-dictation').classList.contains('on')&&!document.hidden&&document.hasFocus()}
+// 自动播放策略：没有用户手势时 AudioContext 起手是 suspended，analyser 读出来
+// 恒等于 0——电平条一动不动，而麦克风、权限、设备全都是好的，界面上也不报错。
+// Electron 默认 autoplayPolicy 是 no-user-gesture-required，所以旧版从来没撞上
+// 这一条，换到 WebView2 才现原形。设置窗是托盘点出来的，这个文档自己没收到过
+// 任何手势，所以必须显式 resume，并且留一条「下次点到页面就再试一次」的后路。
+async function resumeAudio(ctx){
+  try{await ctx.resume()}catch(e){jsLog('AudioContext.resume 失败：'+(e&&e.message))}
+  if(ctx.state==='running')return;
+  jsLog('AudioContext 仍是 '+ctx.state+'，等一次手势');
+  const once=()=>{ctx.resume().catch(()=>{});removeEventListener('pointerdown',once,true);removeEventListener('keydown',once,true)};
+  addEventListener('pointerdown',once,true);addEventListener('keydown',once,true);
+}
+async function startMicPreview(){if(previewStream||previewPending||!dictationPageVisible())return;previewPending=true;try{const stream=await openPreviewMic();previewStream=stream;renderMicDevices();if(!dictationPageVisible()){stopMicPreview();return}previewContext=new AudioContext();await resumeAudio(previewContext);jsLog('麦克风预览已开 · AudioContext='+previewContext.state+' · 采样率'+previewContext.sampleRate);previewSource=previewContext.createMediaStreamSource(previewStream);previewAnalyser=previewContext.createAnalyser();previewAnalyser.fftSize=1024;resetMicPreviewDsp();const samples=new Float32Array(previewAnalyser.fftSize);
+// 开头两秒的一次性体检。「电平条不动」有三种长得一模一样的死法：rAF 根本没跑、
+// 图里流的是数字静音、声音太轻被电平条那 60dB 窗口压到 0%。三者在屏幕上都是
+// 「一条不动的灰杠」，靠看是分不出来的，所以这里把帧数、最大样本、轨道状态一次
+// 性打出来再永远闭嘴——不设上限的话这行会每帧刷一次日志。
+const t0=performance.now();let frames=0,seen=0,reported=false;
+const previewLabel=(()=>{const tr=previewStream.getAudioTracks()[0];return tr&&tr.label||'当前麦克风'})();
+const draw=()=>{if(!previewAnalyser)return;previewAnalyser.getFloatTimeDomainData(samples);
+  frames++;for(const v of samples){const a=Math.abs(v);if(a>seen)seen=a}
+  if(!reported&&performance.now()-t0>2000){reported=true;const tr=previewStream&&previewStream.getAudioTracks()[0];
+    jsLog(`预览体检 2s：帧=${frames} 最大样本=${seen.toFixed(5)} ctx=${previewContext&&previewContext.state} 轨道=${tr?tr.label:'(无)'} ${tr?tr.readyState:''} muted=${tr&&tr.muted} enabled=${tr&&tr.enabled}`)}
+  let sum=0,peak=0;for(const sample of samples){sum+=sample*sample;peak=Math.max(peak,Math.abs(sample))}const gain=10**(Number(st.micGainDb||0)/20);let rms=Math.sqrt(sum/samples.length),predictedPeak=peak;rms*=gain;predictedPeak*=gain;
+// 噪声门：逐帧套一份 engine.py 的判据（电平条要的是趋势，不必逐采样）。
+// 增益在门之前，和引擎一致：门要看的是加过增益的电平，否则「增益」这个旋钮对
+// 开不开门毫无作用，预览也就骗不出真相。门开过一次之后才学背景——没开过之前
+// 低于门槛这件事本身就可能是误判，学进去就再也开不了了。
+if(st.noiseReductionEnabled){const openAt=Math.max(.0015,gateFloor*3.2),closeAt=Math.max(.0010,gateFloor*2.0);gateOpen=rms>=(gateOpen?closeAt:openAt);if(gateOpen)gateEverOpen=true;if(!gateOpen&&gateEverOpen)gateFloor=.97*gateFloor+.03*rms;const target=gateOpen?1:.06;gateEnv+=(target-gateEnv)*(target>gateEnv?.35:.12);rms*=gateEnv;predictedPeak*=gateEnv}
+const level=Math.max(0,Math.min(100,(20*Math.log10(Math.max(rms,1e-5))+60)/60*100));micMeterFill.style.width=level+'%';const hot=predictedPeak>=.95;micMeterFill.style.background=hot?'var(--danger)':'var(--accent)';micClipWarning.classList.toggle('hot',hot);
+// 两秒过去一个非零采样都没有，就不是「声音小」而是这支麦克风根本没在送数据——
+// 虚拟声卡（Virtual Desktop、UU 那些）没人推流时送的就是**逐位为零**的数字静音。
+// 「增益后约 0%」这句话在这种情况下是有害的：它看着像「说话声太轻」，于是人去拧
+// 增益、去喊、去查引擎，而真正要动的是上面那个麦克风下拉框。所以把设备名摆出来。
+const dead=reported&&seen===0;
+micClipWarning.textContent=hot?'削波风险：请降低增益'
+  :dead?`${previewLabel} 没有送来任何信号（数字静音）· 换一支麦克风`
+  :(st.noiseReductionEnabled&&!gateOpen?`降噪已压制底噪 · 约 ${Math.round(level)}%`:`增益后约 ${Math.round(level)}%`);
+previewFrame=requestAnimationFrame(draw)};draw()}catch(error){micClipWarning.textContent='无法预览麦克风：'+error.message;jsLog('麦克风预览失败：'+(error&&error.name)+' '+(error&&error.message))}finally{previewPending=false}}
+function stopMicPreview(){if(previewFrame)cancelAnimationFrame(previewFrame);previewFrame=0;previewAnalyser=null;previewSource=null;previewFilter=null;resetMicPreviewGate();if(previewStream)previewStream.getTracks().forEach(track=>track.stop());previewStream=null;if(previewContext)previewContext.close().catch(()=>{});previewContext=null;micMeterFill.style.width='0';micClipWarning.classList.remove('hot');micClipWarning.textContent='等待麦克风信号'}
+function syncMicPreview(){dictationPageVisible()?startMicPreview():stopMicPreview()}
+document.querySelectorAll('.nav').forEach(b=>b.onclick=()=>{document.querySelectorAll('.nav,.page').forEach(x=>x.classList.remove('on'));b.classList.add('on');document.getElementById('page-'+b.dataset.page).classList.add('on');if(b.dataset.page==='history')renderHistory();syncMicPreview()});
+// beforeunload 里不再存盘：这时候异步 invoke 已经来不及跑完了，兜底那一笔由上面
+// settings-flush 的监听在窗口真正关掉之前完成。
+window.addEventListener('focus',syncMicPreview);window.addEventListener('blur',stopMicPreview);document.addEventListener('visibilitychange',syncMicPreview);window.addEventListener('beforeunload',()=>{stopMicPreview()});
+const LANG={'zh-Hans':'简中','zh-Hant':'繁中',en:'英语',ja:'日语',ko:'韩语',yue:'粤语',fr:'法语',de:'德语',es:'西语',ru:'俄语'};function renderLang(){languageTabs.innerHTML='';for(const [k,v] of Object.entries(LANG)){let b=document.createElement('button');b.className='tab'+(st.languages.includes(k)?' on':'');b.textContent=v;b.onclick=()=>{st.languages=st.languages.includes(k)?st.languages.filter(x=>x!==k):[...st.languages,k];save();renderLang()};languageTabs.appendChild(b)}}
+for(const key of ['autoDetect','customWordsEnabled','learnNamesFromEdits','muteWhileRecording','cpuOnlyEnabled','autoDeviceEnabled','asrKeepLoaded','noiseReductionEnabled','clipboardAutoCleanEnabled','floatingMicEnabled','floatingMicRemoteOnly']){const e=document.getElementById(key);e.checked=st[key]!==false&&!!st[key];e.onchange=()=>{st[key]=e.checked;save();if(key==='noiseReductionEnabled')resetMicPreviewDsp()}}
+invoke('autostart_get').then(enabled=>{openAtLogin.checked=!!enabled}).catch(()=>{});openAtLogin.onchange=async()=>{const wanted=openAtLogin.checked;openAtLogin.disabled=true;try{openAtLogin.checked=await invoke('autostart_set',{enabled:wanted})}catch{openAtLogin.checked=!wanted}finally{openAtLogin.disabled=false}};
+function bindRangeNumber(key,rangeId,numberId,lo,hi,step,dflt){const range=document.getElementById(rangeId),number=document.getElementById(numberId);const clamp=value=>{const parsed=Number(value);if(!Number.isFinite(parsed))return dflt;const snapped=Math.round((parsed-lo)/step)*step+lo;return Math.max(lo,Math.min(hi,snapped))};const draw=value=>{range.value=value;number.value=value};const commit=value=>{st[key]=clamp(value);draw(st[key]);save()};st[key]=clamp(st[key]);draw(st[key]);range.oninput=()=>commit(range.value);number.onchange=()=>commit(number.value);number.onkeydown=event=>{if(event.key==='Enter'){event.preventDefault();number.blur()}};return { redraw:()=>draw(clamp(st[key])) }}
+bindRangeNumber('qwenCtxMaxChars','qwenCtxMaxCharsRange','qwenCtxMaxChars',100,4000,20,480);
+bindRangeNumber('micGainDb','micGainDbRange','micGainDb',-12,30,1,0);
+bindRangeNumber('playbackGainDb','playbackGainDbRange','playbackGainDb',0,40,1,8);
+// bindRangeNumber 自己没有回调口子，在它后面补一个监听：属性式的 oninput 先注册
+// 先跑，所以轮到这儿时 st.playbackGainDb 已经是新值了。
+// range 用 input（拖着就响），number 用 change（bindRangeNumber 就是在 change 里提交的）。
+document.getElementById('playbackGainDbRange').addEventListener('input',()=>{if(activeGain)activeGain()});
+document.getElementById('playbackGainDb').addEventListener('change',()=>{if(activeGain)activeGain()});
+bindRangeNumber('floatingMicSize','floatingMicSizeRange','floatingMicSize',5,100,1,72);
+// 设备名要等麦克风权限到手才读得到，所以电平预览开起来之后还要再填一次，否则列表
+// 里全是「麦克风 1/2/3」，等于让人闭着眼睛选。设备热插拔（远程会话接进来、断开）
+// 也要跟着刷新——远程那支正是用完就走的那种。
+async function renderMicDevices(){
+  let ins=[];
+  try{ins=(await navigator.mediaDevices.enumerateDevices()).filter(d=>d.kind==='audioinput'&&d.deviceId&&d.deviceId!=='default'&&d.deviceId!=='communications')}catch{}
+  const want=String(st.micDeviceId||''),wantLabel=String(st.micDeviceLabel||'');
+  micDeviceSelect.innerHTML='';
+  const auto=document.createElement('option');auto.value='';auto.textContent='自动（跟随系统默认）';micDeviceSelect.appendChild(auto);
+  let hit='';
+  ins.forEach((d,i)=>{const o=document.createElement('option');o.value=d.deviceId;o.textContent=d.label||('麦克风 '+(i+1));if(d.deviceId===want)hit=want;micDeviceSelect.appendChild(o)});
+  // id 对不上就按名字找回来：远程虚拟设备每次重连 id 都会换，只认 id 的话用户选过的
+  // 那支会莫名其妙跳回「自动」，下一次听写又录错设备。
+  if(!hit&&wantLabel){const m=ins.find(d=>d.label===wantLabel);if(m){hit=st.micDeviceId=m.deviceId;save()}}
+  // 真的不在了（远程断开）就标一行出来，但保留用户的选择，别趁人不在把它抹成「自动」。
+  if(!hit&&(want||wantLabel)){const o=document.createElement('option');o.value=want;o.dataset.gone='1';o.textContent=(wantLabel||want.slice(0,8))+'（当前不在）';micDeviceSelect.appendChild(o);hit=want}
+  micDeviceSelect.value=hit;
+}
+micDeviceSelect.onchange=()=>{const o=micDeviceSelect.selectedOptions[0];st.micDeviceId=micDeviceSelect.value;
+  // 名字是给下一次重连用的，所以「当前不在」那一行不能把自己的注脚也存进去。
+  if(!micDeviceSelect.value)st.micDeviceLabel='';else if(!(o&&o.dataset.gone))st.micDeviceLabel=String(o&&o.textContent||'');
+  save();stopMicPreview();syncMicPreview()};
+try{navigator.mediaDevices.addEventListener('devicechange',renderMicDevices)}catch{}
+renderMicDevices();
+// ── 仅在这些程序显示 ──────────────────────────────────────────────
+// 存的还是那串逗号分隔的字符串（micwatch 的 normalize_mic_apps 和 Electron 版都读它）。
+// 这几个函数只是那串字符串的一个视图：进来时拆成药丸，出去时接回逗号。
+// 归一化规则逐条照抄 normalize_mic_apps——小写、按 ,，、换行 拆、超 64 字丢、
+// 最多 32 条。两边对不上的话，界面上明明加上了，实际却不生效。
+const PROC_MAX=32;
+// 标题栏那块「已保存」借来说一句话。这一栏没有别的地方能放提示，而静静地
+// 什么都不发生 = 用户会以为按钮坏了。
+const note=t=>{saved.textContent=t;saved.style.opacity=1;
+ setTimeout(()=>{saved.textContent='已保存';saved.style.opacity=0},1600)};
+let procAll=[],procSel=-1;
+const procNames=()=>{const out=[];
+ for(const p of String(st.floatingMicApps||'').split(/[,，、\r\n]/)){const v=p.trim().toLowerCase();
+  if(!v||v.length>64||out.includes(v))continue;out.push(v);if(out.length>=PROC_MAX)break}
+ return out};
+function writeProcs(list){st.floatingMicApps=list.join(',');save();renderProcChips()}
+function renderProcChips(){const box=procChips,list=procNames();box.textContent='';
+ if(!list.length){const e=document.createElement('span');e.className='proc-empty';
+  e.textContent='空＝任何程序在前台时都显示';box.append(e);return}
+ for(const p of list){const c=document.createElement('span');c.className='proc-chip';
+  // 名字来自系统进程表，不进 innerHTML：可执行文件的名字里什么字符都可能有。
+  if(procAll.includes(p)){c.classList.add('live');c.title='正在运行'}else c.title='当前没在运行';
+  const b=document.createElement('b');b.textContent=p;
+  const x=document.createElement('span');x.className='x';x.textContent='✕';
+  x.title='移除';x.onclick=()=>writeProcs(list.filter(q=>q!==p));
+  c.append(b,x);box.append(c)}}
+// 已经在名单里的不再列出来——列出来点了也没反应，看着像坏了。
+const procMatches=()=>{const q=procInput.value.trim().toLowerCase(),has=procNames();
+ return procAll.filter(p=>!has.includes(p)&&(!q||p.includes(q)))};
+function renderProcList(){const box=procList,m=procMatches();box.textContent='';
+ if(!m.length){const e=document.createElement('div');e.className='none';
+  e.textContent=procAll.length?'没有匹配的进程':'列不出进程，直接打字也行';box.append(e)}
+ else m.forEach((p,i)=>{const d=document.createElement('div');d.textContent=p;
+  if(i===procSel)d.className='sel';
+  // mousedown 而不是 click：click 之前输入框先 blur，那边 150ms 后要收起列表。
+  d.onmousedown=e=>{e.preventDefault();procInput.value=p;addProc()};box.append(d)});
+ box.classList.add('open')}
+function closeProcList(){procList.classList.remove('open');procSel=-1}
+function addProc(){const v=procInput.value.trim().toLowerCase();if(!v)return;
+ procInput.value='';closeProcList();
+ if(v.length>64)return note('关键词太长（最多 64 字）');
+ const list=procNames();if(list.includes(v))return;
+ if(list.length>=PROC_MAX)return note('最多 '+PROC_MAX+' 个');
+ writeProcs([...list,v])}
+function onProcKey(e){const m=procMatches();
+ if(e.key==='ArrowDown'||e.key==='ArrowUp'){e.preventDefault();if(!m.length)return;
+  const step=e.key==='ArrowDown'?1:-1;
+  procSel=procSel<0?(step>0?0:m.length-1):(procSel+step+m.length)%m.length;
+  renderProcList();procList.querySelector('.sel')?.scrollIntoView({block:'nearest'});return}
+ if(e.key==='Escape')return closeProcList();
+ if(e.key==='Enter'){if(procSel>=0&&m[procSel])procInput.value=m[procSel];addProc()}}
+// 每次聚焦都重新问一遍：设置页开着的时候用户很可能正好去把那个程序启动起来。
+// 先用手上这份画出来别让下拉迟到，问回来再重画一次。
+async function loadProcs(render){try{procAll=await invoke('procs_list')}catch(e){console.error('[settings] procs_list failed',e)}
+ renderProcChips();if(render&&procList.classList.contains('open'))renderProcList()}
+procInput.addEventListener('focus',()=>{procSel=-1;renderProcList();loadProcs(true)});
+procInput.addEventListener('input',()=>{procSel=-1;renderProcList()});
+// 等 mousedown 上那一下先跑完再收。直接在 blur 里收的话列表已经没了，点不着。
+procInput.addEventListener('blur',()=>setTimeout(closeProcList,150));
+procInput.addEventListener('keydown',onProcKey);
+procAdd.onclick=()=>{addProc();procInput.focus()};
+loadProcs(false);
+resetFloatingMic.onclick=async()=>{const position=await invoke('reset_floating_mic');st.floatingMicPosition=position;saved.textContent='位置已重置';saved.style.opacity=1;setTimeout(()=>{saved.textContent='已保存';saved.style.opacity=0},1000)};
+// 拖完悬浮麦克风，主进程会把落定的坐标发回来。不收的话这边的内存快照还留着
+// 开窗那一刻的旧坐标，下一次随便改点别的触发 save()，图标就自己跳回原位——
+// settings_save 那边剔掉这三个键只挡住了「设置页覆盖新值」，挡不住「快照本身是旧的」。
+listen('localless://floating-mic-position',e=>{st.floatingMicPosition=e.payload});
+// 托盘右键也能开关悬浮麦克风。不同步的话，这边的内存快照还留着旧值，下一次
+// 随便改点别的触发 save()，就会把托盘刚做的改动整个盖回去。
+listen('localless://floating-mic-enabled',e=>{st.floatingMicEnabled=!!e.payload;const el=document.getElementById('floatingMicEnabled');if(el)el.checked=!!e.payload});
+// 托盘也能改档位，同理要同步：不同步的话这边的内存快照还留着旧值，下一次随便
+// 改点别的触发 save()，就会把托盘刚做的改动整个盖回去。
+listen('localless://cpu-only',e=>{st.cpuOnlyEnabled=!!e.payload;const el=document.getElementById('cpuOnlyEnabled');if(el)el.checked=!!e.payload});
+setTimeout(syncMicPreview,0);
+recordTailMs.value=st.recordTailMs??1000;recordTailMs.onchange=()=>{const raw=String(recordTailMs.value).trim();const v=raw===''?1000:+raw;st.recordTailMs=Number.isFinite(v)?Math.max(0,Math.min(3000,Math.round(v))):1000;recordTailMs.value=st.recordTailMs;save()};historyRetention.value=st.historyRetention;historyRetention.onchange=()=>{st.historyRetention=historyRetention.value;save();purgeHistory()};
+function purgeHistory(){const days={"1d":1,"3d":3,"7d":7,"30d":30}[st.historyRetention];if(!db||!days)return Promise.resolve();
+// 「先删录音文件再删行」那条顺序搬到了 Rust 侧（history.rs 的 history_purge），
+// 理由不变：反过来就再也查不到这些路径，recordings 目录会一直留着孤儿 wav。
+return invoke('history_purge',{days}).catch(e=>console.error('[settings] purge',e))}
+// Windows 文件夹式分组全部显示；词语可在文件夹内排序，也可直接拖到另一个文件夹。
+let dragId=null;  // 保留占位；实际拖拽见 beginDrag()
+function renderWords(){if(!st.wordTags.length)st.wordTags.push({id:'tag-'+Date.now(),name:'新分组'});tagGroups.innerHTML='';for(const g of st.wordTags){const words=st.customWords.filter(w=>w.tag===g.id&&(activeFilter==='all'||w.origin===activeFilter)).sort((a,b)=>(a.order||0)-(b.order||0));const folder=document.createElement('section');folder.className='folder';const head=document.createElement('div');head.className='folder-head';const name=document.createElement('input');name.className='tag-name';name.value=g.name;name.size=Math.max(4,g.name.length);name.onchange=()=>{g.name=name.value.trim()||g.name;save();renderWords();};const count=document.createElement('span');count.className='tag-count';count.textContent=words.length+' 个';const rm=document.createElement('button');rm.className='icon delete';rm.innerHTML=ICO.trash;rm.title='删除分组';rm.onclick=()=>{const rest=st.wordTags.filter(x=>x.id!==g.id);if(!rest.length)st.customWords=st.customWords.filter(w=>w.tag!==g.id);else st.customWords.forEach(w=>{if(w.tag===g.id)w.tag=rest[0].id});st.wordTags=rest;save();renderWords();};const add=document.createElement('button');add.className='icon add';add.innerHTML=ICO.plus;add.title='添加到「'+g.name+'」';add.onclick=()=>{editing=null;openRow=openRow===g.id?null:g.id;renderWords()};head.append(name,count,rm,add);head.onpointerdown=e=>beginTagDrag(e,g,folder);const grid=document.createElement('div');grid.className='word-grid';
+for(const w of words){const c=document.createElement('span');c.className='word-chip';c.dataset.wordId=w.id;c.onpointerdown=e=>beginDrag(e,w,c);const origin=document.createElement('span');origin.className='phrase-icon';origin.title=w.origin==='learned'?'自动学习':'手动添加';origin.innerHTML=w.origin==='learned'?ICO.spark:ICO.leaf;const label=document.createElement('span');label.textContent=w.text;const acts=document.createElement('span');acts.className='phrase-actions';const edit=document.createElement('button');edit.className='icon';edit.innerHTML=ICO.pencil;edit.title='编辑';edit.onclick=()=>beginEdit(w);const del=document.createElement('button');del.className='icon delete';del.innerHTML=ICO.trash;del.title='删除';del.onclick=()=>{st.customWords=st.customWords.filter(x=>x.id!==w.id);save();renderWords()};acts.append(edit,del);c.append(origin,label,acts);grid.appendChild(c)}if(!words.length){const e=document.createElement('span');e.className='hint';e.textContent='拖词语到此文件夹';grid.appendChild(e)}folder.dataset.tagId=g.id;folder.append(head,grid);if(openRow===g.id){const row=document.createElement('div');row.className='input-row show';const inp=document.createElement('input');inp.className='control';inp.placeholder=editing?'修改词语':'添加到「'+g.name+'」';inp.value=editing?editing.text:'';const ok=document.createElement('button');ok.className='btn primary';ok.textContent=editing?'保存':'添加';const no=document.createElement('button');no.className='btn';no.textContent='取消';const commit=()=>{const t=inp.value.trim();if(t){const dup=st.customWords.find(w=>w!==editing&&w.text.toLowerCase()===t.toLowerCase());if(dup){/* 重复词不新增，改成定位过去闪一下边框 */flashWordId=dup.id;if(activeFilter!=='all'&&dup.origin!==activeFilter)setFilter('all');editing=null;openRow=null;renderWords();return}if(editing){editing.text=t;editing.tag=g.id;editing.updatedAt=Date.now()}else st.customWords.push({id:'manual-'+Date.now(),text:t,origin:'manual',tag:g.id,order:Date.now(),createdAt:Date.now(),updatedAt:Date.now()});save()}editing=null;openRow=null;renderWords()};const cancel=()=>{editing=null;openRow=null;renderWords()};ok.onclick=commit;no.onclick=cancel;inp.onkeydown=e=>{if(e.key==='Enter')commit();if(e.key==='Escape')cancel()};row.append(inp,no,ok);folder.appendChild(row);setTimeout(()=>{inp.focus();if(editing)inp.select()},0)}tagGroups.appendChild(folder)}if(flashWordId){const el=tagGroups.querySelector('[data-word-id="'+flashWordId+'"]');flashWordId=null;if(el){el.scrollIntoView({block:'center',behavior:'smooth'});el.classList.remove('flash');void el.offsetWidth;el.classList.add('flash');setTimeout(()=>el.classList.remove('flash'),1600)}}}
+function normalizeOrder(){for(const g of st.wordTags)st.customWords.filter(w=>w.tag===g.id).sort((a,b)=>(a.order||0)-(b.order||0)).forEach((w,i)=>w.order=i)}
+// Pointer Events 手写拖拽：HTML5 DnD 在 Electron 无边框 + transparent 窗口里收不到 drop，
+// dragstart 能触发但 dataTransfer 永远拿不回来，所以整个换掉。
+function beginDrag(e,w,chip){if(e.button!==0)return;const startX=e.clientX,startY=e.clientY;let ghost=null,moved=false;const marker=document.createElement('div');marker.className='drop-marker';
+ const onMove=ev=>{if(!moved&&Math.hypot(ev.clientX-startX,ev.clientY-startY)<5)return;
+  if(!moved){moved=true;chip.setPointerCapture(ev.pointerId);chip.classList.add('dragging');document.body.classList.add('dragging-word');ghost=chip.cloneNode(true);ghost.className='word-chip drag-ghost';ghost.style.width=chip.offsetWidth+'px';document.body.appendChild(ghost);chip.parentNode.insertBefore(marker,chip)}
+  ghost.style.left=ev.clientX+'px';ghost.style.top=ev.clientY+'px';
+  const under=document.elementFromPoint(ev.clientX,ev.clientY);
+  const over=under?.closest('.folder');
+  tagGroups.querySelectorAll('.folder').forEach(f=>f.classList.toggle('over',f===over));
+  const grid=over?.querySelector('.word-grid');
+  if(!grid){marker.remove();return}
+  const t=under?.closest('.word-chip');
+  if(t===chip){if(marker.parentNode!==grid)grid.insertBefore(marker,chip);return}
+  if(t&&!t.classList.contains('drag-ghost')){
+   const r=t.getBoundingClientRect();
+   grid.insertBefore(marker, ev.clientX < r.left + r.width/2 ? t : t.nextSibling);
+  } else if(marker.parentNode!==grid) grid.appendChild(marker);};
+ const onUp=ev=>{document.removeEventListener('pointermove',onMove);document.removeEventListener('pointerup',onUp);
+  chip.classList.remove('dragging');document.body.classList.remove('dragging-word');ghost?.remove();
+  if(moved){const kill=ce=>{ce.stopPropagation();ce.preventDefault()};document.addEventListener('click',kill,true);setTimeout(()=>document.removeEventListener('click',kill,true),120)}
+  const grid=marker.parentNode;
+  // 落点 = marker 之前的兄弟词数（排除被拖的那个自己）
+  const seq=grid?[...grid.children]:[];
+  const idxInDom=seq.indexOf(marker);
+  const sibs=seq.filter(n=>n.classList&&n.classList.contains('word-chip')&&n.dataset.wordId!==w.id)
+    .map(n=>st.customWords.find(x=>x.id===n.dataset.wordId)).filter(Boolean);
+  const idx=seq.slice(0,idxInDom).filter(n=>n.classList&&n.classList.contains('word-chip')&&n.dataset.wordId!==w.id).length;
+  marker.remove();
+  tagGroups.querySelectorAll('.folder').forEach(f=>f.classList.remove('over'));
+  if(!moved)return;
+  const folder=grid?grid.closest('.folder'):document.elementFromPoint(ev.clientX,ev.clientY)?.closest('.folder');
+  if(!folder)return;
+  const tid=folder.dataset.tagId;
+  const prev=sibs[idx-1],next=sibs[idx];
+  w.tag=tid;
+  w.order=next?((prev?(prev.order||0):(next.order||0)-1)+(next.order||0))/2
+              :(prev?(prev.order||0)+1:0);
+  normalizeOrder();save();renderWords()};
+ document.addEventListener('pointermove',onMove);document.addEventListener('pointerup',onUp)}
+document.getElementById('exportWords').onclick=async()=>{const data={type:'localless-words',version:1,exportedAt:new Date().toISOString(),tags:st.wordTags.map(g=>({id:g.id,name:g.name})),words:st.customWords.slice().sort((a,b)=>(a.order||0)-(b.order||0)).map(w=>({text:w.text,tag:w.tag,origin:w.origin||'manual'}))};const r=await invoke('save_json',{name:'localless-words.json',data:JSON.stringify(data,null,2)});if(r&&r.path){saved.textContent='已导出 '+data.words.length+' 个词';saved.style.opacity=1;setTimeout(()=>{saved.textContent='已保存';saved.style.opacity=0},1600)}};
+document.getElementById('importWords').onclick=async()=>{const r=await invoke('open_json');if(!r||!r.data)return;let j;try{j=JSON.parse(r.data)}catch{alert('不是合法 JSON');return}const words=Array.isArray(j)?j:j.words;if(!Array.isArray(words)){alert('缺少 words 字段');return}const tagsIn=(j&&j.tags)||[];const idMap={};for(const t of tagsIn){const hit=st.wordTags.find(g=>g.id===t.id||g.name===t.name);if(hit)idMap[t.id]=hit.id;else{const ng={id:'tag-'+Date.now()+'-'+Math.floor(performance.now()*1000%1e6),name:t.name||t.id};st.wordTags.push(ng);idMap[t.id]=ng.id}}let n=0,t0=Date.now();for(const w of words){const text=(typeof w==='string'?w:w&&w.text||'').trim();if(!text)continue;if(st.customWords.some(x=>x.text===text))continue;const rawTag=typeof w==='string'?null:w.tag;let tag=idMap[rawTag]||(st.wordTags.some(g=>g.id===rawTag)?rawTag:null);if(!tag&&rawTag){const byName=st.wordTags.find(g=>g.name===rawTag);if(byName)tag=byName.id;else{const ng={id:'tag-'+t0+'-'+n,name:rawTag};st.wordTags.push(ng);tag=ng.id}}if(!tag)tag=st.wordTags[0].id;st.customWords.push({id:'imp-'+t0+'-'+n,text,origin:(typeof w!=='string'&&w.origin==='learned')?'learned':'manual',tag,order:t0+n,createdAt:t0,updatedAt:t0});n++}normalizeOrder();save();renderWords();alert('已导入 '+n+' 个新词（重复已跳过）')};
+document.getElementById('addTag').onclick=()=>{st.wordTags.push({id:'tag-'+Date.now(),name:'新分组'});save();renderWords()};
+function beginEdit(w){editing=w;openRow=w.tag;renderWords()}
+function setFilter(f){activeFilter=f;document.getElementById('wordFilter').querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.filter===f))}
+document.getElementById('wordFilter').onclick=e=>{if(!e.target.dataset.filter)return;setFilter(e.target.dataset.filter);renderWords()};
+const PROMPT_VARS=[['text','当前待处理文本'],['words','自定义词语列表'],['wordsByTag','按分组列出的词语'],['focused','当前输入框内容'],['history','最近听写历史'],['corrections','已确认的拼写修正'],['app','目标应用名'],['wrong','修改前文本'],['right','修改后文本']];
+const PROMPT_FIELDS=[
+ ['asrPrompt','语音识别词汇提示','传给 Qwen-ASR 的 initial prompt，只在有自定义词语时发送。'],
+ ['learnPrompt','学习新词','判断你的手动修改里是否含有值得保存的专名。默认会自动附加一份「已有词表，不要重复提交」的说明；只要模板里写了 {{words}} 或 {{wordsByTag}}，就改由你自己决定词表放在哪、怎么措辞。'],
+];
+let lastPromptArea=null;
+const CHEV='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>';
+function renderPrompts(){
+ const vt=document.getElementById('varToggle'),vh=document.getElementById('varHead');
+ if(vt&&!vt.dataset.wired){vt.dataset.wired='1';vt.innerHTML=CHEV;
+  const flip=()=>{const hid=varList.classList.toggle('collapsed');vt.style.transform=hid?'':'rotate(180deg)'};
+  vh.onclick=flip}
+ varList.innerHTML='';for(const [name,desc] of PROMPT_VARS){const c=document.createElement('button');c.className='var-chip';c.type='button';c.title=desc;c.append('{{'+name+'}}');const e=document.createElement('em');e.textContent=desc;c.appendChild(e);c.onclick=()=>{const a=lastPromptArea;if(!a)return;const s=a.selectionStart,t='{{'+name+'}}';a.value=a.value.slice(0,s)+t+a.value.slice(a.selectionEnd);a.selectionStart=a.selectionEnd=s+t.length;a.focus();a.dispatchEvent(new Event('input'))};varList.appendChild(c)}
+ promptCards.innerHTML='';for(const [key,label,desc] of PROMPT_FIELDS)promptCards.appendChild(buildPromptCard(key,label,desc))}
+// 栏位 = 同一环节的多套提示词。st.promptPresets[key] 是 [{name,text}]，st[key] 始终是「当前生效的那份」。
+// 未点保存的编辑只活在 area.value 里：切栏位或关软件就丢，符合"未保存的改动会被撤销"。
+function presetsOf(key){const p=st.promptPresets||(st.promptPresets={});if(!Array.isArray(p[key])||!p[key].length)p[key]=[{name:'默认',text:st[key]??DEFAULT_PROMPTS[key]}];return p[key]}
+function presetIdx(key){const list=presetsOf(key);const at=(st.promptPresetAt||{})[key]|0;return Math.max(0,Math.min(list.length-1,at))}
+function buildPromptCard(key,label,desc){
+ const card=document.createElement('div');card.className='prompt-card';
+ const head=document.createElement('div');head.className='prompt-head';head.append(label);
+ const hint=document.createElement('div');hint.className='hint';hint.textContent=desc;
+ const bar=document.createElement('div');bar.className='preset-bar';
+ const nameInput=document.createElement('input');nameInput.className='preset-name';nameInput.placeholder='新栏位名称';nameInput.style.display='none';
+ const act=document.createElement('button');act.className='preset-act';act.type='button';
+ const btn=document.createElement('button');btn.className='preset-btn';btn.type='button';btn.title='切换栏位';
+ const menu=document.createElement('div');menu.className='preset-menu';menu.style.display='none';
+ const hideMenu=()=>{menu.style.display='none'};
+ btn.onclick=e=>{e.stopPropagation();if(naming)return;menu.style.display=menu.style.display==='none'?'':'none'};
+ document.addEventListener('click',e=>{if(!bar.contains(e.target))hideMenu()});
+ bar.append(btn,nameInput,act,menu);head.appendChild(bar);
+ const area=document.createElement('textarea');area.spellcheck=false;
+ let naming=false;
+ const list=()=>presetsOf(key);
+ const cur=()=>list()[presetIdx(key)];
+ const dirty=()=>area.value!==(cur()?.text??'');
+ const setIcon=()=>{
+  act.innerHTML=(naming||dirty())?ICO.copy:ICO.plus;
+  act.classList.toggle('dirty',naming||dirty());
+  act.title=naming?'保存为新栏位':dirty()?'保存改动':'新建栏位';
+ };
+ const fit=()=>{const n=[...cur().name].reduce((a,c)=>a+(c.charCodeAt(0)>255?2:1),0);btn.style.maxWidth=Math.min(150,34+n*6.2+18)+'px'};
+ const del=document.createElement('button');del.className='preset-del';del.type='button';del.title='删除当前栏位';
+ del.innerHTML=ICO.trash;del.style.display='none';
+ let delConfirm=false;
+ del.onclick=()=>{
+  if(!delConfirm){
+   delConfirm=true;del.classList.add('confirm');del.innerHTML=ICO.check;
+   setTimeout(()=>{if(delConfirm){delConfirm=false;del.classList.remove('confirm');del.innerHTML=ICO.trash}},2000);
+   return}
+  delConfirm=false;del.classList.remove('confirm');del.innerHTML=ICO.trash;
+  const list=presetsOf(key),at=presetIdx(key);
+  // at>0 才可能走到这（默认栏位不显示垃圾桶）；at===0 只兜底成"恢复出厂"，
+  // 别再 splice 完又写 list[0]——那会把后面那个栏位一起抹掉。
+  if(at===0)list[0]={name:'默认',text:DEFAULT_PROMPTS[key]};
+  else list.splice(at,1);
+  (st.promptPresetAt||(st.promptPresetAt={}))[key]=0;
+  st[key]=list[0].text;
+  save();fill();
+ };
+ const updDel=()=>{del.style.display=presetIdx(key)===0?'none':'flex'};
+ const reset=document.createElement('button');reset.className='preset-act';reset.type='button';reset.title='恢复到默认提示词';
+ reset.innerHTML=ICO.undo;reset.querySelector('svg').style.transform='scale(.9)';
+ reset.onclick=()=>{
+  const list=presetsOf(key),at=presetIdx(key);
+  list[at]={name:'默认',text:DEFAULT_PROMPTS[key]};
+  (st.promptPresetAt||(st.promptPresetAt={}))[key]=at;
+  naming=false;nameInput.style.display='none';btn.style.display='';
+  st[key]=list[at].text;save();fill();
+ };
+ bar.prepend(del,reset);
+ const updReset=()=>{reset.style.display=presetIdx(key)===0?'flex':'none'};
+ const fill=()=>{
+  const at=presetIdx(key);
+  btn.innerHTML='<span style="overflow:hidden;text-overflow:ellipsis">'+cur().name+'</span>'+CHEV;
+  menu.innerHTML='';list().forEach((p,i)=>{
+   const o=document.createElement('div');o.className='opt'+(i===at?' cur':'');o.textContent=p.name;
+   o.onclick=ev=>{ev.stopPropagation();hideMenu();
+    (st.promptPresetAt||(st.promptPresetAt={}))[key]=i;
+    st[key]=list()[i].text;save();fill()};
+   menu.appendChild(o)});
+  area.value=cur().text;fit();setIcon();updDel();updReset()};
+ area.oninput=setIcon;
+ area.onfocus=()=>lastPromptArea=area;
+ act.onclick=()=>{
+  if(naming){const nm=nameInput.value.trim()||('栏位 '+(list().length+1));
+   list().push({name:nm,text:area.value});
+   (st.promptPresetAt||(st.promptPresetAt={}))[key]=list().length-1;
+   st[key]=area.value;naming=false;nameInput.style.display='none';btn.style.display='';save();fill();return}
+  if(dirty()){cur().text=area.value;st[key]=area.value;save();setIcon();return}
+  // 新栏位**继承**当前栏位的内容当初始结构（用户明确要的），只清名字不清正文。
+  // 下拉仍要关掉：菜单开着时点一项会走 fill()，把别的栏位内容灌进来。
+  naming=true;hideMenu();nameInput.value='';btn.style.display='none';nameInput.style.display='';
+  setIcon();setTimeout(()=>nameInput.focus(),0)};
+ nameInput.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();act.onclick()}
+  else if(e.key==='Escape'){naming=false;nameInput.style.display='none';btn.style.display='';fill()}};
+ fill();
+ card.append(head,hint,area);
+ return card}
+// 词级 LCS 差异：中日韩按字切、拉丁按词切。只给自学习那条历史用，够看就行。
+// ponytail: O(n*m) 表，600 字上限下最坏 36 万格，够快；要更大再换 Myers。
+function diffTokens(t){return String(t||'').match(/[A-Za-z0-9_']+|\s+|[\s\S]/gu)||[]}
+function renderDiff(wrong,right){
+ const a=diffTokens(wrong),b=diffTokens(right);
+ const m=a.length,n=b.length,L=Array.from({length:m+1},()=>new Uint32Array(n+1));
+ for(let i=m-1;i>=0;i--)for(let j=n-1;j>=0;j--)L[i][j]=a[i]===b[j]?L[i+1][j+1]+1:Math.max(L[i+1][j],L[i][j+1]);
+ const box=document.createElement('div');box.className='history-diff';
+ let i=0,j=0,buf='',cls='';
+ const flush=()=>{if(!buf)return;const sp=document.createElement('span');if(cls)sp.className=cls;sp.textContent=buf;box.appendChild(sp);buf=''};
+ const put=(txt,c)=>{if(c!==cls){flush();cls=c}buf+=txt};
+ while(i<m&&j<n){
+  if(a[i]===b[j]){put(a[i],'');i++;j++}
+  else if(L[i+1][j]>=L[i][j+1]){put(a[i],'diff-del');i++}
+  else{put(b[j],'diff-ins');j++}
+ }
+ while(i<m)put(a[i++],'diff-del');
+ while(j<n)put(b[j++],'diff-ins');
+ flush();return box}
+// 用户改过的那一条：前后对照跟「有没有学会新词」是两回事。以前这段整个套在
+// learned.term 里面——只有真学会了一个词才画对照。于是改了字但没触发学词，历史里
+// 就只剩改后那一版，改了什么一点痕迹都没有。而改前那份一直躺在 refined_text 里，
+// 对照是现成的：改这行时库里 31 条有改动，画得出来的只有 1 条。
+//
+// renderDiff 是 O(n*m) 的 LCS 表，整段听写上千字就是百万格，翻一次历史会卡住，
+// 所以超长的只给一行说明，不硬算。
+const DIFF_MAX_CHARS=1200;
+function editDiff(r,lm){
+ const origin=r.refined_text||r.raw_text||'',after=r.corrected_text||'';
+ if(after&&origin&&after!==origin){
+  if(Math.max(origin.length,after.length)>DIFF_MAX_CHARS){const d=document.createElement('div');d.className='history-diff';d.textContent='这条改动太长，不显示逐字对照';return d}
+  return renderDiff(origin,after);
+ }
+ // 整段改动没记下时（改动发生在自学习那条轮询之外），退回它记下的那一小段：
+ // 只有被改的那几个字，聊胜于无。
+ if(lm&&lm.learned&&(lm.learned.wrong||lm.learned.right))return renderDiff(lm.learned.wrong,lm.learned.right);
+ return null}
+// 命中词表的词加绿色下划线。长词优先，避免「Claude」被「cla」抢先切断。
+function markWords(box,str){box.textContent='';const words=(st.customWords||[]).map(w=>w.text).filter(Boolean).sort((a,b)=>b.length-a.length);if(!words.length){box.textContent=str;return}
+ const re=new RegExp(words.map(w=>w.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|'),'gi');let last=0,m;
+ while((m=re.exec(str))){if(!m[0]){re.lastIndex++;continue}
+  if(m.index>last)box.appendChild(document.createTextNode(str.slice(last,m.index)));
+  const sp=document.createElement('span');sp.className='history-word';sp.textContent=m[0];box.appendChild(sp);last=m.index+m[0].length}
+ if(last<str.length)box.appendChild(document.createTextNode(str.slice(last)))}
+// 分组排序：拖分组标题栏上下移动整个文件夹。词语拖拽在 beginDrag，两者互不干扰。
+function beginTagDrag(e,g,folder){if(e.button!==0)return;if(e.target.closest('input,button'))return;
+ const startY=e.clientY;let moved=false,dropIdx=null;
+ const clear=()=>tagGroups.querySelectorAll('.folder').forEach(f=>f.classList.remove('tag-drop-before','tag-drop-after'));
+ const onMove=ev=>{if(!moved&&Math.abs(ev.clientY-startY)<5)return;
+  if(!moved){moved=true;folder.classList.add('tag-dragging');document.body.classList.add('dragging-word')}
+  clear();
+  const over=document.elementFromPoint(ev.clientX,ev.clientY)?.closest('.folder');
+  if(!over||over===folder){dropIdx=null;return}
+  const r=over.getBoundingClientRect(),after=ev.clientY>r.top+r.height/2;
+  over.classList.add(after?'tag-drop-after':'tag-drop-before');
+  dropIdx=st.wordTags.findIndex(x=>x.id===over.dataset.tagId)+(after?1:0)};
+ const onUp=()=>{document.removeEventListener('pointermove',onMove);document.removeEventListener('pointerup',onUp);
+  folder.classList.remove('tag-dragging');document.body.classList.remove('dragging-word');clear();
+  if(!moved)return;
+  const kill=ce=>{ce.stopPropagation();ce.preventDefault()};document.addEventListener('click',kill,true);setTimeout(()=>document.removeEventListener('click',kill,true),120);
+  if(dropIdx==null)return;
+  const from=st.wordTags.findIndex(x=>x.id===g.id);
+  const rest=st.wordTags.filter(x=>x.id!==g.id);
+  rest.splice(dropIdx-(dropIdx>from?1:0),0,g);
+  st.wordTags=rest;save();renderWords()};
+ document.addEventListener('pointermove',onMove);document.addEventListener('pointerup',onUp)}
+// 「只有音频」的历史条目：转写没走完时兜底存下来的录音（超时/引擎错误/引擎重启）。
+// 这里直接连引擎重跑一遍，跟录音窗口走的是同一条协议——开完连接就发 start_audio，
+// 没有额外握手。自定义词表那些偏置靠 corrections 带过去，跟正常听写一致。
+function audioFrame(id,payload){const aid=new TextEncoder().encode(id);const body=new Uint8Array(payload),f=new Uint8Array(6+aid.length+body.length);f.set([76,76,65,70,1,aid.length],0);f.set(aid,6);f.set(body,6+aid.length);return f.buffer}
+async function retranscribe(row,onState){
+// 录音和偏置词都只有 Rust 侧读得到，先把这两样取回来再开连接——
+// 拿不到录音就不必白连一次引擎。read_audio 走的是二进制通道，回来就是 ArrayBuffer。
+let wav;try{wav=await invoke('read_audio',{path:row.audio_local_path})}catch(e){return{error:'录音文件已经不在了：'+e}}
+const corrections=await invoke('corrections_top');
+return new Promise(resolve=>{
+const id='redo-'+row.id;let sock=null,done=false;
+const finish=r=>{if(done)return;done=true;clearTimeout(timer);try{sock&&sock.close()}catch{}resolve(r)};
+// 上限跟着音频长度走：CPU 上光 ASR 就要 0.3~0.7 倍时长，后面还有一轮精修。
+const timer=setTimeout(()=>finish({error:'重新转录超时'}),Math.min(1800,120+3*(Number(row.duration)||0))*1000);
+try{sock=new WebSocket('ws://127.0.0.1:8765/ws/rt_voice_flow')}catch(e){finish({error:'连不上引擎'});return}
+sock.binaryType='arraybuffer';
+sock.onerror=()=>finish({error:'连不上引擎（是不是还没启动？）'});
+sock.onclose=()=>finish({error:'引擎断开了'});
+sock.onopen=()=>{onState&&onState('正在重新转录…');
+sock.send(JSON.stringify({type:'start_audio',audio_id:id,mode:'transcript',history:[],corrections,focused_text:'',target_app:'',audio_metadata:{audio_format:'wav',audio_sample_rate:16000,audio_channels:1}}));
+sock.send(audioFrame(id,wav));
+sock.send(JSON.stringify({type:'end_audio',audio_id:id,mode:'transcript',total_duration:Number(row.duration)||0,send_time:Date.now()}))};
+sock.onmessage=ev=>{let m;try{m=JSON.parse(ev.data)}catch{return}if(m.audio_id&&m.audio_id!==id)return;
+if(m.type==='refine_completed')finish({text:m.refined_text||m.raw_text||'',raw:m.raw_text||''});
+else if(m.type==='error'||m.type==='protocol_error')finish({error:m.message||m.error||'引擎报错'})}})}
+ICO.play=S('<path d="M8 5.6v12.8L19 12 8 5.6Z"/>','currentColor');
+ICO.pause=S('<path d="M9.5 5v14M14.5 5v14"/>');
+// 喇叭而不是话筒：这颗按钮调的是**放出来**的音量。画成话筒的那阵子它挨着
+// 波形，看着像「用这个麦重录一遍」或「调录音增益」——正好是它不干的两件事。
+ICO.speaker=S('<path d="M11 5 6.5 9H4a1 1 0 0 0-1 1v4a1 1 0 0 0 1 1h2.5L11 19V5Z"/><path d="M15.2 9.2a4 4 0 0 1 0 5.6M18 6.5a8 8 0 0 1 0 11"/>');
+ICO.caret=S('<path d="m9.5 6.5 5.5 5.5-5.5 5.5"/>');
+const mmss=s=>{s=Math.max(0,Math.round(Number(s)||0));return Math.floor(s/60)+':'+String(s%60).padStart(2,'0')};
+// 存档的 WAV 是 16 位单声道 PCM（preload 的 wavPcm16 写的），头 44 字节定长，
+// 所以不用解码器也能直接量出每一格的峰值。读失败就回 null，柱子退回中性高度——
+// 宁可不显示音量，也不能让一段正常录音因为读不出来而画成平线，那等于报了个假故障。
+// 字节现在由调用方（audioPlayer）一次读好传进来：Electron 那边这里自己
+// fs.readFileSync，这边读文件要过 IPC，展开一条历史读两遍没道理。
+const waveCache=new Map();
+let playerUrl=null;   // 上一段加过增益的音频，换下一段时撤掉
+// 正在听的那一段的 applyGain。拖增益条时只重算它一段：一页历史几百行，
+// 挨个重算就是把几百个 wav 全读进内存乘一遍。没播过的下次点播放自然会取新值。
+let activeGain=null;
+function waveOf(buf,p,n){
+ if(waveCache.has(p))return waveCache.get(p);
+ let bars=null;
+ try{if(buf){const b=new Uint8Array(buf),dv=new DataView(buf);
+  if(b.length>44+2&&String.fromCharCode(b[0],b[1],b[2],b[3])==='RIFF'){
+   const total=(b.length-44)>>1,step=Math.max(1,Math.floor(total/n));bars=[];
+   for(let i=0;i<n;i++){let mx=0;const s=44+i*step*2;
+    // 每格内部隔 3 个采样取一个：一段 3 分钟的录音是 300 万个采样，全扫会卡住渲染，
+    // 而峰值这种统计量隔着取一样抓得住。
+    for(let j=0;j<step;j+=3){const o=s+j*2;if(o+1>=b.length)break;
+     const v=Math.abs(dv.getInt16(o,true));if(v>mx)mx=v}
+    bars.push(mx/32768)}}}
+ }catch{}
+ waveCache.set(p,bars);return bars}
+// 折叠一条历史。文字和「已学会」「前后对照」留在外面——那些是内容；
+// 折的只有播放器。
+// 播放器等第一次展开才建：建它要把整段 wav 读进内存算波形，开页就建一百个，
+// 光把滚动条拖到底都要等上几秒。没人展开的那些一个字节都不读。
+function foldable(item,head,meta,body,r){
+ item.classList.add('foldable');
+ const caret=document.createElement('span');caret.className='fold-caret';
+ caret.innerHTML=ICO.caret;meta.prepend(caret);
+ const fold=document.createElement('div');fold.className='history-fold';
+ body.appendChild(fold);
+ // building 这道闩是 Tauri 版新加的：audioPlayer 现在要 await 一次读文件，
+ // 连点两下会在同一条里塞进两个播放器。Electron 那边是同步建的，用不着。
+ let building=false;
+ head.onclick=async()=>{
+  // 选中一段文字、松手那一下也算 click。不挡掉就成了"想复制一句话，
+  // 结果把这条收起来了"。
+  if(!getSelection().isCollapsed)return;
+  if(item.classList.toggle('open')&&!fold.firstChild&&!building){
+   building=true;
+   try{fold.appendChild(await audioPlayer(r))}finally{building=false}}}}
+// 增益条挂到被点的那个话筒底下。
+let gainBtn=null;
+function closeGainPop(){if(!gainBtn)return;
+ gainBtn.classList.remove('on');gainBtn=null;gainPop.hidden=true}
+function toggleGainPop(btn){
+ const same=gainBtn===btn;closeGainPop();if(same)return;
+ gainBtn=btn;btn.classList.add('on');gainPop.hidden=false;
+ const b=btn.getBoundingClientRect(),g=gainPop.getBoundingClientRect();
+ gainPop.style.left=Math.max(8,Math.min(innerWidth-g.width-8,b.right-g.width))+'px';
+ // 下面装不下就翻到话筒上方：列表滚到底时话筒离窗口下沿只剩几十像素。
+ gainPop.style.top=(b.bottom+7+g.height>innerHeight
+  ?Math.max(8,b.top-g.height-7):b.bottom+7)+'px'}
+// 点别处收起来。用捕获期：播放条上挂了 stopPropagation，冒泡期收不到。
+window.addEventListener('pointerdown',e=>{
+ if(gainBtn&&!gainPop.contains(e.target)&&!gainBtn.contains(e.target))closeGainPop()},true);
+async function audioPlayer(r){
+ // 整段 wav 一次读进来：波形、原始播放源、加增益的副本都从这一份出。
+ // 读不到就给个空播放器——柱子退回中性高度，比整条历史不显示强。
+ const raw=await invoke('read_audio',{path:r.audio_local_path}).catch(()=>null);
+ const wrap=document.createElement('div');wrap.className='player';
+ const a=document.createElement('audio');a.preload='metadata';
+ // Electron 那边这里是 'file:///'+路径。WebView2 里页面是 tauri:// 源，
+ // file:// 一律加载不了（静默失败，看着就是点了播放没声音），所以原始那一份
+ // 也得过一次 blob。这个 URL 不撤销：它就是这条历史的 <audio> 源，撤了再点
+ // 播放就是空的。只有用户亲手展开的行才会留一份，和那边一条一个 file:// 等价。
+ const srcFile=raw?URL.createObjectURL(new Blob([raw],{type:'audio/wav'})):'';
+ a.src=srcFile;let curSrc=srcFile;
+ // 磁盘上这份 wav 没加增益（增益是引擎按会话加的），直接播比自己说话时听到的
+ // 轻一大截。播放时补上 micGainDb，再加一档只管回放的 playbackGainDb。
+ // 采样自己乘，不用 WebAudio：createMediaElementSource 撞上跨源判定会静音，
+ // 而静音没人查得出来。
+ // 换源要记住进度、放着的接着放：增益条是边听边拖的，一拖就从头开始等于没法比。
+ const swap=url=>{if(curSrc===url)return;curSrc=url;
+  const t=a.currentTime,go=!a.paused;a.src=url;
+  if(t||go)a.addEventListener('loadedmetadata',()=>{
+   if(t)a.currentTime=t;if(go)a.play().catch(()=>{})},{once:true})};
+ let gainedDb=null;
+ const applyGain=()=>{
+  const db=Number(st.micGainDb||0)+Number(st.playbackGainDb||0);
+  if(gainedDb===db)return;gainedDb=db;
+  const g=10**(db/20);
+  // 调回 0 dB 得把原文件换回来，不然还在放上一次算出来的那份，像是调了没反应。
+  if(Math.abs(g-1)<.01){swap(srcFile);return}
+  try{if(!raw||raw.byteLength<=44)return;
+   const head=new Uint8Array(raw,0,4);
+   if(String.fromCharCode(head[0],head[1],head[2],head[3])!=='RIFF')return;
+   // 必须拷一份再乘（对应那边的 Buffer.from）：就地改会连带把 srcFile 那份的
+   // 来源改掉，而且每拖一格都是在上一次的结果上再乘一遍，增益会滚雪球。
+   const out=raw.slice(0),dv=new DataView(out);
+   for(let o=44;o+1<out.byteLength;o+=2)
+    dv.setInt16(o,Math.max(-32768,Math.min(32767,
+     Math.round(dv.getInt16(o,true)*g))),true);
+   // 同时只留一个 blob：一页历史几百行，每行留一份就是几百兆。
+   if(playerUrl)URL.revokeObjectURL(playerUrl);
+   playerUrl=URL.createObjectURL(new Blob([out],{type:'audio/wav'}));
+   swap(playerUrl);
+  }catch{}};
+ const play=document.createElement('button');play.type='button';play.className='player-play';
+ play.title='播放';play.setAttribute('aria-label','播放');play.innerHTML=ICO.play;
+ const wave=document.createElement('div');wave.className='player-wave';wave.tabIndex=0;
+ wave.setAttribute('role','slider');wave.setAttribute('aria-label','播放进度');
+ const N=34,lv=waveOf(raw,r.audio_local_path,N);
+ for(let i=0;i<N;i++){const bar=document.createElement('i');
+  // 0.45 次方而不是线性：人耳对响度是对数的，线性会把 0.05 和 0.9 之外的差别全压没。
+  bar.style.height=(lv?Math.round(3+21*Math.pow(lv[i],.45)):9)+'px';wave.appendChild(bar)}
+ const time=document.createElement('span');time.className='player-time';
+ const dur=()=>Number.isFinite(a.duration)&&a.duration>0?a.duration:(Number(r.duration)||0);
+ const paint=()=>{const d=dur(),f=d?a.currentTime/d:0;
+  for(let i=0;i<N;i++)wave.children[i].classList.toggle('played',i/N<f);
+  time.textContent=mmss(a.currentTime)+' / '+mmss(d);
+  wave.setAttribute('aria-valuetext',mmss(a.currentTime)+' / '+mmss(d))};
+ const seek=e=>{const b=wave.getBoundingClientRect(),d=dur();if(!d||!b.width)return;
+  a.currentTime=Math.max(0,Math.min(d,(e.clientX-b.left)/b.width*d));paint()};
+ play.onclick=()=>{activeGain=applyGain;applyGain();a.paused?a.play().catch(()=>{}):a.pause()};
+ a.onplay=()=>{play.innerHTML=ICO.pause;play.title='暂停';play.setAttribute('aria-label','暂停')};
+ a.onpause=()=>{play.innerHTML=ICO.play;play.title='播放';play.setAttribute('aria-label','播放')};
+ a.ontimeupdate=paint;a.onloadedmetadata=paint;a.onended=()=>{a.currentTime=0;paint()};
+ wave.onpointerdown=e=>{wave.setPointerCapture(e.pointerId);seek(e)};
+ wave.onpointermove=e=>{if(wave.hasPointerCapture(e.pointerId))seek(e)};
+ wave.onkeydown=e=>{const d=dur();
+  if(e.key==='ArrowLeft'){a.currentTime=Math.max(0,a.currentTime-2);paint()}
+  else if(e.key==='ArrowRight'){a.currentTime=Math.min(d,a.currentTime+2);paint()}
+  else if(e.key===' '||e.key==='Enter'){play.onclick()}else return;e.preventDefault()};
+ const gain=document.createElement('button');gain.type='button';
+ gain.className='player-gain';gain.title='回放增益';
+ gain.setAttribute('aria-label','回放增益');gain.innerHTML=ICO.speaker;
+ // 点喇叭也算「正在听这一段」：接下来拖增益条要重算的就是它。
+ gain.onclick=()=>{activeGain=applyGain;toggleGainPop(gain)};
+ // 播放条上的点击不要传回折叠头：点一下暂停，结果整条收起来、音也停了。
+ wrap.onclick=e=>e.stopPropagation();
+ paint();wrap.append(play,wave,time,gain,a);return wrap}
+// debug_info 是 preload 的 emptyWhy() 写的，形如
+// 「空 — 录到的声音太轻（整段峰值 0.0136，远低于正常说话）」。
+// 拆成「出了什么事 / 量到多少 / 下一步做什么」三行。拆不开就把原文整句放第一行——
+// 哪天那边改了措辞，这里最差也只是少一条建议，不会变成一行空白。
+function failLines(r){
+ const raw=String(r.debug_info||'').trim();
+ const m=/^空\s*[—\-–]\s*([^（(]+)[（(]([^）)]*)[）)]\s*$/.exec(raw);
+ const what=(m?m[1]:raw).trim()||'这段录音没转出文字';
+ const why=m?m[2].trim():'';
+ const fix=/没录到声音/.test(what)?'这一路完全没有信号。去「听写」页看选中的麦克风，说话时波形不动就是选错了设备。'
+  :/太轻/.test(what)?'正常说话的峰值在 0.9 上下，这段差了一个数量级。离麦克风近一点，或者换一支收音的设备。'
+  :/没听清/.test(what)?'音量是够的，这是识别没认出来。点右边的重新转录再跑一遍，或者把没认出的名词加进「词语」。'
+  :'';
+ const line=(c,t)=>{const d=document.createElement('div');d.className=c;d.textContent=t;return d};
+ const out=[line('what',what)];
+ if(why)out.push(line('why',why));
+ if(fix)out.push(line('fix',fix));
+ return out}
+async function renderHistory(){closeGainPop();await purgeHistory();if(!db){historyList.innerHTML='<div class="empty">历史数据库不可用</div>';return}const rows=await invoke('history_list').catch(e=>{console.error('[settings] history',e);return[]});historyList.innerHTML='';if(!rows.length){historyList.innerHTML='<div class="empty">完成一次听写后，内容会出现在这里。</div>';return}for(const r of rows){let item=document.createElement('div');item.className='history-item';let body=document.createElement('div');let head=document.createElement('div');head.className='history-head';let meta=document.createElement('div');meta.className='history-meta';meta.textContent=new Date(r.created_at).toLocaleString()+(r.target_app?' · '+r.target_app:'');let text=document.createElement('div');text.className='history-text';const txt=r.corrected_text||r.refined_text||r.raw_text||'';markWords(text,txt);head.append(meta,text);body.append(head);const hasAudio=!!r.audio_local_path&&!!r.has_audio;if(hasAudio){if(!txt){text.className='history-fail';text.replaceChildren(...failLines(r))}foldable(item,head,meta,body,r)}let lm=null;try{lm=JSON.parse(r.mode_meta||'null')}catch{}if(lm&&lm.learned&&lm.learned.term){const chip=document.createElement('div');chip.className='history-learned';chip.innerHTML=ICO.spark+'<span>已学会「'+lm.learned.term+'」→ '+(lm.learned.tag||'词库')+'</span>';body.appendChild(chip)}const df=editDiff(r,lm);if(df)body.appendChild(df);let actions=document.createElement('div');let copy=document.createElement('button');copy.className='icon';copy.title='复制';copy.innerHTML=ICO.copy;copy.onclick=()=>{clipboard.writeText(text.textContent);copy.innerHTML=ICO.check;setTimeout(()=>copy.innerHTML=ICO.copy,700)};let del=document.createElement('button');del.className='icon delete';del.title='删除';del.innerHTML=ICO.trash;del.onclick=()=>{invoke('history_delete',{id:r.id}).catch(e=>console.error('[settings] delete',e));item.remove()};if(hasAudio){const redo=document.createElement('button');redo.className='icon';redo.title='重新转录';redo.innerHTML=ICO.undo;redo.onclick=async()=>{redo.disabled=true;const before=text.innerHTML,cls=text.className;text.className='history-text history-untranscribed';text.textContent='正在重新转录…';const out=await retranscribe(r,s=>{text.textContent=s});redo.disabled=false;if(out.error||!out.text){text.className=cls;text.innerHTML=before;alert(out.error||'这段音频没转出内容');return}await invoke('history_update',{id:r.id,raw:out.raw||'',text:out.text,updatedAt:new Date().toISOString()});renderHistory()};actions.append(redo)}actions.append(copy,del);item.append(body,actions);historyList.appendChild(item)}}
+// 录触发键期间必须把全局钩子摘掉，见 keyhook.rs 的 hook_capture：钩子对单键是
+// 吞的，不摘的话按 RightAlt 这一下根本到不了这个 keydown。
+let capturing=false;shortcut.textContent=st.dictationShortcut;
+function endCapture(){capturing=false;shortcut.classList.remove('capture');invoke('hook_capture',{on:false}).catch(e=>console.error('[settings] hook_capture off',e))}
+shortcut.onclick=()=>{capturing=true;shortcut.classList.add('capture');shortcut.textContent='请按新按键…';invoke('hook_capture',{on:true}).catch(e=>console.error('[settings] hook_capture on',e))};
+window.addEventListener('blur',()=>{if(capturing){shortcut.textContent=st.dictationShortcut;endCapture()}});
+window.addEventListener('keydown',e=>{if(!capturing)return;e.preventDefault();if(e.key==='Escape'){shortcut.textContent=st.dictationShortcut;endCapture();return}const mods=[];if(e.ctrlKey)mods.push('Ctrl');if(e.altKey)mods.push('Alt');if(e.shiftKey)mods.push('Shift');if(e.metaKey)mods.push('Meta');let key=e.code==='AltRight'?'RightAlt':e.code==='ControlRight'?'RightCtrl':e.key.length===1?e.key.toUpperCase():e.key;if(['Control','Shift','Alt','Meta'].includes(key))return;// 主键本身就是个修饰键时，它会把自己的 ctrlKey/altKey 一起置上，于是录 RightCtrl
+// 录出来的是「Ctrl+RightCtrl」。那串东西不只是难看：keyhook.rs 的 swallow_vk 只对
+// **不带修饰键**的单键生效，多出来的这个 Ctrl 会让 swallow 变成 0，单键吞键那条路
+// 就没了。RightAlt 一直有这层过滤，RightCtrl 漏了。
+const SELF_MOD={RightAlt:'Alt',RightCtrl:'Ctrl'};
+const value=[...mods.filter(x=>x!==SELF_MOD[key]),key].join('+');if(/^[A-Z]$/.test(value)){shortcut.textContent='该按键不可用';return}st.dictationShortcut=value;shortcut.textContent=value;endCapture();save()});
+let modelState=[];const openModelKinds=new Set(),LABELS={asr:'语音识别',llm:'文本模型',component:'流程组件'};
+async function refreshModel(){modelState=(await invoke('model_status')).models||[];renderModels()}
+function currentId(kind){return kind==='asr'?st.speechModel:kind==='llm'?st.learnModel:'silero-vad'}
+function helpTitle(text,tip){const w=document.createElement('span');w.className='tip';const t=document.createElement('span');t.className='label';t.textContent=text;const h=document.createElement('span');h.className='hint';h.textContent=tip;w.append(t,h);return w}
+function rating(m){if(!Number.isInteger(m.strength)||!Number.isInteger(m.speed))return null;const e=document.createElement('div');e.className='rating';for(const [label,value] of [['强',m.strength],['快',m.speed]]){const g=document.createElement('span');g.className='rating-group';g.append(label);for(let i=1;i<=5;i++){const p=document.createElement('i');p.className='rating-pill'+(i<=value?' on':'');g.appendChild(p)}e.appendChild(g)}return e}
+const HEAD_HELP={asr:'把音频转换为 raw text。',llm:'只给「从修改中学词」用：改完一句听写后，它在后台判断这次改动里有没有值得存进词表的新词。听写本身不过它。',component:'自学习判定：你手动改完并发送后，在后台比对原文与改后文本，决定是否把新词存进词库（不参与转写）。\nSilero VAD：检测音频中是否有人声。'};
+function renderModels(){modelSections.innerHTML='';for(const kind of ['asr','llm','component']){const section=document.createElement('section');section.className='model-section';const head=document.createElement('div');head.className='model-section-head';head.append(helpTitle(LABELS[kind],HEAD_HELP[kind]));section.appendChild(head);const stack=document.createElement('div');stack.className='model-stack'+(openModelKinds.has(kind)?' open':'');const current=currentId(kind),models=modelState.filter(x=>x.category===kind);if(kind==='component'){const components=document.createElement('div');components.className='component-grid';for(const m of models){const card=document.createElement('div');card.className='component-card';const body=document.createElement('div');body.className='grow';body.innerHTML=`<div class="label">${m.name}</div><div class="hint">${m.unused?'备用 · 当前未调用':'正在使用'}</div>`;card.append(body);components.appendChild(card)}section.appendChild(components);modelSections.appendChild(section);continue}const ordered=[...models].sort((a,b)=>(a.id===current?-1:b.id===current?1:0));for(const m of ordered){const active=current===m.id,row=document.createElement('div');row.className='model-card '+(active?'active':m.installed?'installed':'off');const body=document.createElement('div');body.className='grow';const title=document.createElement('div');title.className='model-title';title.textContent=m.name;const detail=document.createElement('div');detail.className='hint model-detail';detail.textContent=m.backend+(m.unused?' · 当前未调用':'');body.append(title,detail);const rate=rating(m);if(rate)body.appendChild(rate);if(m.total){const progress=document.createElement('div');progress.className='progress model-detail';const i=document.createElement('i');i.style.width=(m.installed?100:Math.round((m.bytes||0)*100/m.total))+'%';progress.appendChild(i);body.appendChild(progress)}const acts=document.createElement('div');acts.className='model-actions';if(!m.installed&&m.files){const dl=document.createElement('button');dl.className='icon';dl.innerHTML=ICO.down;dl.title=m.downloading?'下载中':'下载';dl.disabled=m.downloading;dl.onclick=e=>{e.stopPropagation();invoke('download_model',{modelId:m.id}).then(refreshModel)};acts.appendChild(dl)}const used=[st.speechModel,st.learnModel,'silero-vad'].includes(m.id);if(m.installed&&!m.builtin&&!used){const del=document.createElement('button');del.className='icon delete';del.innerHTML=ICO.trash;del.title='删除模型';/* 必须 await，也必须走 askOk 而不是 window.confirm——理由见 askOk 那里。 */
+del.onclick=async e=>{e.stopPropagation();if(await askOk('删除 '+m.name+'？')){await invoke('delete_model',{id:m.id});refreshModel()}};acts.appendChild(del)}if(active){const arrow=document.createElement('span');arrow.className='model-chevron';arrow.innerHTML='<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m6.5 9 5.5 5.5L17.5 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';acts.appendChild(arrow)}row.onclick=()=>{if(active){openModelKinds.has(kind)?openModelKinds.delete(kind):openModelKinds.add(kind);renderModels();return}if(!m.installed)return;openModelKinds.delete(kind);if(kind==='asr'){st.speechModel=m.id;save();renderModels();saved.textContent='模型切换中';saved.style.opacity=1;invoke('reload_engine').catch(e=>console.warn('[settings] reload engine',e)).then(()=>setTimeout(()=>{saved.textContent='已保存';saved.style.opacity=0},1600))}else if(kind==='llm'){st.learnModel=m.id;save();renderModels()}};row.append(body,acts);stack.appendChild(row)}section.appendChild(stack);modelSections.appendChild(section)}}
+openModels.onclick=()=>invoke('open_folder',{which:'models'});listen('localless://download-progress',()=>refreshModel());
+// 「上一次语音识别流程」那张卡已经删了。链路只剩 ASR 一段，把一段画成流程图只是
+// 把一行字摊成一页；真正看不见又非看不可的是**实际发给模型的那段 prompt**——词表
+// 和上下文都是变量展开后才成形的，不打出来就只能靠猜它到底带没带上。
+// Rust 那侧的 pipeline_update / pipeline_latest 原样留着：prompt 就是从它带过来的。
+const pipelineState=new Map();
+function acceptPipeline(p){if(!p?.audio_id)return;pipelineState.delete(p.audio_id);pipelineState.set(p.audio_id,p);while(pipelineState.size>50)pipelineState.delete(pipelineState.keys().next().value);renderAsrPrompt(p)}
+function renderAsrPrompt(p){const t=p?.stages?.asr?.prompt||'';asrPromptView.textContent=t||'完成一次听写后，这里会显示实际发出去的 prompt。'}
+copyAsrPrompt.onclick=()=>invoke('copy_text',{text:asrPromptView.textContent||''});
+listen('localless://pipeline-update',e=>acceptPipeline(e.payload));invoke('pipeline_latest').then(items=>{for(const p of Array.isArray(items)?items:items?[items]:[])acceptPipeline(p)}).catch(e=>console.warn('[settings] pipeline',e));
+openRecordings.onclick=()=>invoke('open_folder',{which:'recordings'});
+// 不在这里 flushSave：settings_close 会让 Rust 走一遍 CloseRequested，那边发
+// settings-flush 过来，存完再由 settings_close_force 真关（见上面那段注释）。
+document.getElementById('close').onclick=()=>invoke('settings_close');// 配色：写进设置，当场改 <html> 上那个标记（整页的信号色都从那儿取），
+// 主进程收到 save() 顺带发的 settings-changed 就把托盘图标换成同色那张。
+const ACCENTS=['green','white','orange'];
+function applyAccent(){const v=ACCENTS.includes(st.accentColor)?st.accentColor:'green';
+ document.documentElement.dataset.accent=v;
+ for(const b of accentSeg.querySelectorAll('button'))b.classList.toggle('on',b.dataset.accent===v)}
+for(const b of accentSeg.querySelectorAll('button'))b.onclick=()=>{st.accentColor=b.dataset.accent;applyAccent();save()};
+applyAccent();
+renderLang();renderWords();renderPrompts();purgeHistory();refreshModel();
+
+// 数的是真挂上去的 DOM，不是「代码跑到了这里」：一片空白的页面报不出
+// 非零的控件数。和下面那条失败分支一样，为的是不看屏幕也能判活。
+invoke('selfcheck',{line:'设置页就绪 · 行 '+document.querySelectorAll('.row').length
+ +' · 侧栏 '+document.querySelectorAll('.nav').length
+ +' · 分页 '+document.querySelectorAll('.page').length
+ +' · 设置项 '+Object.keys(st).length+' · 历史库 '+(db?'在':'不在')}).catch(()=>{});
+})().catch(e=>{
+ // 启动阶段炸了的话页面是一片空白，控制台在没开 devtools 时也看不到。
+ // 写进 Rust 的 stderr：那一条日志是不看屏幕也能比对的唯一线索。
+ console.error('[settings] 启动失败',e);
+ try{window.__TAURI__.core.invoke('selfcheck',{line:'设置页启动失败：'+(e&&e.message||e)})}catch{}
+});
+</script></body></html>

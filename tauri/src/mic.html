@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Localless 麦克风</title>
+<style>
+  /* 从 Electron 版 app/mic.html 原样搬过来，一个数没动。 */
+  * { box-sizing:border-box; }
+  html, body { width:100%; height:100%; margin:0; overflow:hidden; background:transparent; user-select:none;
+    /* 整个表面都拒绝浏览器手势。只在 #mic 上写不够：手指滑到按钮外面（拖动时
+       很容易）就又交回给 Chromium，双指还会被当成捏合触发视觉缩放。 */
+    touch-action:none; -webkit-user-select:none; }
+  body { display:grid; place-items:center; font-family:"Microsoft YaHei UI",sans-serif; }
+  /* 尺寸一律走 vmin（短边），不用百分比撑满窗口。Windows 给小窗口强行加高
+     4px——实测请求 20×20 得到 20×24、30×30 得到 30×34，36px 以上才夹回正方形。
+     跟着非正方形的窗口撑满，border-radius:50% 就会忠实地画成竖椭圆。 */
+  #mic {
+    width:88.8889vmin; height:88.8889vmin; padding:0; min-width:0; min-height:0;
+    border:clamp(1px,2.7778vmin,2px) solid rgba(149,162,184,.78);
+    border-radius:50%; color:#e7edf7; background:rgba(25,29,37,.92);
+    /* 投影必须落进 5.56vmin 的留白里。原来的 0 8px 28px 在 72px 窗口里要向下
+       铺 36px，而边距只有 4px，溢出部分被窗口矩形硬裁——那圈"透明方形边框"
+       就是被裁平的投影，不是边框。 */
+    box-shadow:0 1vmin 3vmin rgba(0,0,0,.45), inset 0 0 0 1px rgba(255,255,255,.06);
+    display:grid; place-items:center; cursor:pointer; touch-action:none; outline:none;
+  }
+  #mic.pressed { transform:scale(.96); cursor:grabbing; }
+  svg { width:53.125%; height:53.125%; overflow:visible; }
+  .sketch { fill:none; stroke:currentColor; stroke-width:2.25; stroke-linecap:round; stroke-linejoin:round; }
+  .offset { opacity:.28; transform:translate(1px,-.6px); }
+</style>
+</head>
+<body>
+<button id="mic" type="button" aria-label="切换语音输入；拖动可移动" title="切换语音输入；拖动可移动">
+  <svg viewBox="0 0 36 36" aria-hidden="true">
+    <path class="sketch offset" d="M18 5.5c-3.15 0-5.35 2.25-5.35 5.55v6.25c0 3.2 2.2 5.45 5.35 5.45s5.35-2.25 5.35-5.45v-6.25C23.35 7.75 21.15 5.5 18 5.5Z M8.8 16.5v1.1c0 5.2 3.75 9 9.2 9s9.2-3.8 9.2-9v-1.1 M18 26.7v4.1 M13.6 30.9h8.8"/>
+    <path class="sketch" d="M18 5.5c-3.15 0-5.35 2.25-5.35 5.55v6.25c0 3.2 2.2 5.45 5.35 5.45s5.35-2.25 5.35-5.45v-6.25C23.35 7.75 21.15 5.5 18 5.5Z M8.8 16.5v1.1c0 5.2 3.75 9 9.2 9s9.2-3.8 9.2-9v-1.1 M18 26.7v4.1 M13.6 30.9h8.8"/>
+  </svg>
+</button>
+<script>
+(() => {
+  const button = document.getElementById('mic');
+  // 触摸端（iPad 远程桌面）双指捏合会走 Chromium 的视觉缩放：布局不变，只把
+  // 渲染放大，于是窗口还是 36px 而图标越拖越大。Electron 版还能在主进程
+  // setVisualZoomLevelLimits(1,1) 再兜一层，WebView2 没有对应开关，页面这边
+  // 就是唯一的一道——远程桌面把手势翻译成 Ctrl+滚轮时走的也是这条路径。
+  const stop = e => e.preventDefault();
+  for (const type of ['gesturestart', 'gesturechange', 'gestureend']) {
+    window.addEventListener(type, stop, { passive: false });
+  }
+  window.addEventListener('wheel', e => { if (e.ctrlKey) e.preventDefault(); }, { passive: false });
+  // 双击缩放同理：这个按钮不需要任何双击语义。
+  window.addEventListener('dblclick', stop, { passive: false });
+
+  // Electron 版这一段是 mic-preload.cjs 挂的 window.locallessMic（三个 ipcRenderer
+  // 调用）。这边换成 Tauri 的 invoke，参数名和语义一字不差，下面的手势状态机
+  // 照搬不动。__TAURI__ 还没注入时退化成空函数——和原版拿不到 preload 时同一个
+  // 兜底形状。
+  const call = (cmd, args) => window.__TAURI__?.core?.invoke(cmd, args);
+  const micApi = {
+    toggle: () => call('mic_toggle'),
+    move: (x, y) => call('mic_move', { x, y }),
+    dragEnd: (x, y) => call('mic_drag_end', { x, y }),
+    nudge: (dx, dy) => call('mic_nudge', { dx, dy }),
+  };
+  let pointer = null;
+
+  button.addEventListener('pointerdown', event => {
+    if (event.button !== 0 && event.pointerType === 'mouse') return;
+    button.setPointerCapture(event.pointerId);
+    button.classList.add('pressed');
+    pointer = {
+      id:event.pointerId,
+      startX:event.screenX,
+      startY:event.screenY,
+      winX:event.screenX - event.clientX,
+      winY:event.screenY - event.clientY,
+      lastX:event.screenX,
+      lastY:event.screenY,
+      dragged:false,
+      // 触控不能用 screenX 拖，见 micwin.rs 的 mic_nudge：按客户区偏移走，
+      // 一次只放一条在路上，窗口挪完之前生成的事件一律丢掉。
+      touch:event.pointerType !== 'mouse',
+      grabX:event.clientX,
+      grabY:event.clientY,
+      busy:false,
+      readyAt:0,
+      at:null,
+    };
+  });
+  button.addEventListener('pointermove', event => {
+    if (!pointer || event.pointerId !== pointer.id) return;
+    const dx = event.screenX - pointer.startX;
+    const dy = event.screenY - pointer.startY;
+    if (pointer.touch) {
+      const ox = event.clientX - pointer.grabX;
+      const oy = event.clientY - pointer.grabY;
+      if (!pointer.dragged && Math.hypot(ox, oy) < 5) return;
+      pointer.dragged = true;
+      if (pointer.busy || event.timeStamp < pointer.readyAt) return;
+      pointer.busy = true;
+      const p = pointer;
+      Promise.resolve(micApi.nudge(ox, oy))
+        .then(at => { if (at) p.at = at; })
+        .catch(() => {})
+        .finally(() => { p.busy = false; p.readyAt = performance.now(); });
+      return;
+    }
+    if (!pointer.dragged && Math.hypot(dx, dy) < 5) return;
+    pointer.lastX = event.screenX;
+    pointer.lastY = event.screenY;
+    pointer.dragged = true;
+    micApi.move(pointer.winX + dx, pointer.winY + dy);
+  });
+  const finish = event => {
+    if (!pointer || event.pointerId !== pointer.id) return;
+    const current = pointer;
+    pointer = null;
+    button.classList.remove('pressed');
+    if (current.dragged && current.touch) {
+      if (current.at) micApi.dragEnd(current.at[0], current.at[1]);
+    } else if (current.dragged) {
+      micApi.dragEnd(
+        current.winX + event.screenX - current.startX,
+        current.winY + event.screenY - current.startY
+      );
+    } else {
+      micApi.toggle();
+    }
+  };
+  button.addEventListener('pointerup', finish);
+  button.addEventListener('pointercancel', event => {
+    if (!pointer || event.pointerId !== pointer.id) return;
+    const current = pointer;
+    pointer = null;
+    button.classList.remove('pressed');
+    // 触控被系统接管前窗口可能已经跟随 move() 移动；把最后一次实际坐标落盘，
+    // 避免屏幕上位置与重启后恢复的位置不一致。
+    if (current.dragged && current.touch) {
+      if (current.at) micApi.dragEnd(current.at[0], current.at[1]);
+    } else if (current.dragged) {
+      micApi.dragEnd(
+        current.winX + current.lastX - current.startX,
+        current.winY + current.lastY - current.startY
+      );
+    }
+  });
+})();
+</script>
+</body>
+</html>

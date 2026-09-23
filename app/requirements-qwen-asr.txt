@@ -1,0 +1,2 @@
+# Qwen3-ASR receives the already-decoded 16 kHz NumPy PCM array directly.
+# No separate audio-decoder dependency is required.

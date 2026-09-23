@@ -1,0 +1,69 @@
+[package]
+name = "localless"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.82"
+description = "Offline dictation"
+default-run = "localless"
+
+[lib]
+name = "localless_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = ["tray-icon", "image-ico", "devtools"] }
+tauri-plugin-dialog = "2"
+tauri-plugin-opener = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+rusqlite = { version = "0.32", features = ["bundled"] }
+parking_lot = "0.12"
+once_cell = "1"
+uuid = { version = "1", features = ["v4"] }
+time = { version = "0.3", features = ["formatting", "macros", "local-offset"] }
+# WebView2 的麦克风授权只能从 COM 这一层给：见 src/mic.rs。
+webview2-com = "0.38"
+
+[dependencies.windows]
+# 跟 webview2-com 0.38 用同一个大版本。差一个版本就是两套互不相认的 HRESULT、
+# HWND、COM 接口，麦克风授权那段要在它们之间传类型，对不上就编译不过。
+version = "0.61"
+features = [
+  "Win32_Foundation",
+  "Win32_System_Com",
+  "Win32_System_Com_StructuredStorage",
+  "Win32_System_Variant",
+  "Win32_System_Ole",
+  "Win32_System_DataExchange",
+  "Win32_System_Memory",
+  "Win32_System_LibraryLoader",
+  "Win32_System_Threading",
+  # 引擎的进程树用 Job Object 管：见 src/job.rs。
+  "Win32_System_JobObjects",
+  "Win32_System_ProcessStatus",
+  "Win32_System_Diagnostics_ToolHelp",
+  "Win32_UI_WindowsAndMessaging",
+  "Win32_UI_Input_KeyboardAndMouse",
+  "Win32_UI_Accessibility",
+  "Win32_UI_Shell",
+  "Win32_Media_Audio",
+  "Win32_Media_Audio_Endpoints",
+  "Win32_Graphics_Gdi",
+  # 三个无边框窗口都要显式关掉 DWM 的非客户区绘制：光把 WS_CAPTION 从样式里
+  # 删掉不够，DWM 照自己那份策略还能画出一条标题栏来。见 pill.rs 的 no_frame。
+  "Win32_Graphics_Dwm",
+  "Win32_Security",
+  # 「自动清理剪贴板」关着时要把原内容挪回 Win+V 第一位：见 src/cliphist.rs。
+  "ApplicationModel_DataTransfer",
+]
+
+# 体积是这次换 Tauri 的主要动机，release 就按体积来调。
+[profile.release]
+opt-level = "z"
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = true

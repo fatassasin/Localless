@@ -1,0 +1,8 @@
+# 关掉 git 的一切文本转换，让文件按字节原样进出。
+#
+# 这个项目对换行符敏感：app/preload.cjs 是全 CRLF，app/test_controls.js 是全 LF，
+# 各自内部一致。test_controls.js 会从 preload.cjs 里按行抠函数体，
+# tools/mutate_saveaudio.js 的多行正则也写死了 \r?\n。
+# 一旦 git 在 checkout 时把 CRLF 归一成 LF，这些匹配会静默落空——
+# 变异测试不会报错，只会全变成 SKIP，看着像"过了"其实什么都没测。
+* -text

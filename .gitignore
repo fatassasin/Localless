@@ -1,0 +1,76 @@
+# ── 依赖与构建产物 ────────────────────────────────────────
+.venv/
+__pycache__/
+*.pyc
+node_modules/
+
+# target/ 是几个 GB 的 Rust 中间产物，cargo build 会重新生成。
+tauri/src-tauri/target/
+tauri/src-tauri/gen/
+
+# ── 模型权重（约 21.5 GB）────────────────────────────────
+# 用 app/download-model.py 重新拉，别进 git。
+models/
+
+# ── 运行时日志与状态 ──────────────────────────────────────
+*.log
+*.log.old
+localless/
+engine-heartbeat
+app/_hookout.txt
+
+# ── 个人数据（不该进仓库，哪怕是 private）────────────────
+# 这一段拦的是「说过的话」和「说给谁听」，比源码敏感得多，而且一旦 push 就
+# 留在 GitHub 的历史里删不干净。宁可宽一点。
+#
+# typeless-words.json 是从 Typeless 导出的自定义词表，里面有真实人名。
+#   （现在的词表存在 %APPDATA%\localless\localless-settings.json 里，
+#     这个文件只是留着的旧档，程序已经不读它了。）
+# _recovered_summary.md 是 Claude Code 的会话记录，不是项目源码。
+typeless-words.json
+_recovered_summary.md
+
+# 设置、历史库、录音存档正常都在 %APPDATA%\localless\ 下，进不了仓库；
+# 这几条拦的是排查问题时顺手拷进来的那一份。
+localless-settings.json
+imported-models.json
+*.db
+*.db-wal
+*.db-shm
+*.wav
+*.mp3
+recordings/
+
+# 截图。tools/shot-*.ps1 默认写 %TEMP%，但手动截的常常落在根目录。
+/*.png
+/*.jpg
+screen.png
+
+# ── 工具生成的临时文件 ────────────────────────────────────
+app/_pill_preview.html
+.preview/
+
+# ── 一次性改写脚本 ────────────────────────────────────────
+# 根目录这几十个 patch_*.py 是按一条一条需求写的补丁：每个都写死了绝对路径、
+# 断言「这段原文必须正好出现一次」，跑完一次就再也匹配不上了。改动本身已经在
+# 源码里，脚本留着只会让人以为它们还能重跑。
+/patch_*.py
+/clean_*.py
+/audit_*.py
+/make_*.py
+
+# ── 只留本机的启动脚本和笔记 ──────────────────────────────
+/Localless.bat
+/Localless.vbs
+/restart.ps1
+/stop-localless.ps1
+/TAURI-CHECK.md
+
+# ── 杂项 ──────────────────────────────────────────────────
+*.lnk
+.claude/settings.local.json
+
+# ── 排查时抓的帧和日志 ────────────────────────────────────
+# tools/ 下那几个探针往这儿写截屏和窗口日志。截屏拍的是整块桌面，
+# 里面什么都可能有——不进仓库。
+graphify-out/

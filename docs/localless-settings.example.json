@@ -1,0 +1,32 @@
+{
+  "dictationShortcut": "RightAlt",
+  "languages": ["zh-Hans", "en"],
+  "autoDetect": true,
+  "speechModel": "qwen3-asr-1.7b-hf",
+  "learnModel": "qwen3-4b",
+  "autoDeviceEnabled": true,
+  "cpuOnlyEnabled": false,
+  "asrKeepLoaded": true,
+  "micDeviceId": "",
+  "micDeviceLabel": "",
+  "micGainDb": 0,
+  "noiseReductionEnabled": false,
+  "recordTailMs": 1000,
+  "clipboardAutoCleanEnabled": true,
+  "historyRetention": "forever",
+  "accentColor": "green",
+  "floatingMicEnabled": false,
+  "floatingMicRemoteOnly": true,
+  "floatingMicSize": 72,
+  "customWordsEnabled": true,
+  "learnNamesFromEdits": true,
+  "wordTags": [
+    { "id": "general", "name": "通用" },
+    { "id": "people", "name": "人名" },
+    { "id": "projects", "name": "编程项目" }
+  ],
+  "customWords": [
+    { "id": "example-1", "text": "Localless", "tag": "projects", "origin": "manual" },
+    { "id": "example-2", "text": "GitHub", "tag": "general", "origin": "manual" }
+  ]
+}

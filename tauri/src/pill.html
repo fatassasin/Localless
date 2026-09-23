@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>Localless</title>
+<style>
+/* 这一页是从 Electron 版 preload.cjs 的 OVERLAY 里原样搬过来的：同一套 class、
+   同一份 CSS、同一组数值。那边是把药丸注进别人的页面，所以样式写成字符串拼接；
+   这边它本身就是一整个窗口，恢复成正常样式表，但一个数没动。
+
+   平台逼着改的只有一处：Electron 靠 setIgnoreMouseEvents(true,{forward:true})
+   让穿透状态下的窗口照样把 mousemove 送进渲染进程，于是 DOM 的 mouseenter 能做
+   悬停检测。Tauri 没有 forward，而且悬停这条路在触摸屏上本来就不成立——改成
+   **窗口本身只有药丸这么大**（src/pill.rs），这边只负责把药丸量出来报上去。
+
+   窗口跟着药丸走，逼出两条这一页非守不可的规矩：
+   1. 药丸的宽度必须是 width:max-content。fixed 定位元素的包含块是视口，窗口一小，
+      shrink-to-fit 就把药丸压扁，量出来的宽度不再是内容的自然宽度——窗口跟着这个
+      宽度再缩一次，就成了自激。
+   2. 一个 vw 都不能用。vw 是窗口宽度的百分之一，而窗口宽度就是药丸宽度，同样是
+      自激。换成 --ll-vw：屏幕宽度的百分之一，由下面的 fitPill() 现算。 */
+
+:root{
+ /* 药丸在窗口里的左上角偏移，给 box-shadow 留的。**和 pill.rs 的 SHADOW_PAD 是
+    同一个数**，两边对不上药丸就会贴着窗口边或者露出一条空白。 */
+ --ll-pad:28px;
+ /* 屏幕宽度的百分之一。fitPill() 会按真实屏幕改写，这里的默认值只管首帧。 */
+ --ll-vw:19.2px;
+}
+html,body{margin:0;height:100%;overflow:hidden;background:transparent;user-select:none;
+ cursor:default}
+
+.ll-pill{position:fixed;left:var(--ll-pad);top:var(--ll-pad);
+ transform:scale(calc(.75 * var(--ll-k,1)));transform-origin:left top;
+ display:flex;align-items:center;gap:12px;width:max-content;
+ height:47px;min-height:47px;box-sizing:border-box;background:#17171a;color:#f4f4f5;
+ border:1px solid rgba(255,255,255,.09);border-radius:999px;
+ padding:5px 7px;font:500 13px/1.45 -apple-system,Segoe UI,Arial,sans-serif;
+ box-shadow:0 14px 44px rgba(0,0,0,.66);transition:opacity .2s;z-index:2147483647;
+ pointer-events:auto;max-width:calc(70 * var(--ll-vw))}
+
+.ll-text{font-size:13px;line-height:1.45;white-space:nowrap;overflow:hidden;
+ text-overflow:ellipsis;padding:0 5px;flex:0 1 auto;min-width:0}
+
+.ll-undo,.ll-copy{display:none;width:26px;height:26px;border-radius:50%;border:0;
+ background:#303036;color:#fff;cursor:pointer;font-size:18px;align-items:center;
+ justify-content:center}
+
+.ll-pill.result{gap:8px;width:max-content;max-width:min(calc(78 * var(--ll-vw)),720px)}
+.ll-pill.result.tall{height:94px;min-height:94px;border-radius:24px}
+.ll-pill.result .ll-wave,.ll-pill.result .ll-ok,.ll-pill.result .ll-undo{display:none}
+.ll-pill.result .ll-x{display:flex}
+.ll-pill.result .ll-text{display:block;font-size:13px;line-height:1.45;
+ max-width:min(calc(65 * var(--ll-vw)),620px);white-space:nowrap;overflow:visible;text-overflow:clip;flex:0 1 auto}
+.ll-pill.result.tall .ll-text{width:min(calc(65 * var(--ll-vw)),620px);white-space:normal;
+ overflow-wrap:anywhere;word-break:break-word;overflow:visible}
+.ll-pill.result .ll-copy{display:flex;order:2;flex:none}
+
+/* 学到新词的提示：左边是撤回（不要这个词），右边是勾（知道了，留着）。
+   ✕ 在这里没有意义——两个按钮都会收起提示，区别只在于词留不留。 */
+.ll-pill.learned .ll-wave,.ll-pill.learned .ll-x{display:none}
+.ll-pill.learned .ll-undo{display:flex;order:0}
+.ll-pill.learned .ll-text{display:block;order:1}
+.ll-pill.learned .ll-ok{display:flex;order:2}
+
+.ll-x,.ll-ok{width:26px;height:26px;border-radius:50%;border:0;display:flex;
+ align-items:center;justify-content:center;line-height:1;cursor:pointer;flex:none;padding:0}
+.ll-x{background:#333338;color:#ececef}
+.ll-x:hover{background:#3d3d43}
+.ll-ok{background:#f5f5f6;color:#111113}
+.ll-ok:hover{background:#ffffff}
+
+/* refine 阶段：旋转圆环移除——波浪线换成一行 "thinking" 文字，X 保留（可取消录音）。 */
+.ll-pill.refine .ll-wave,.ll-pill.refine .ll-ok{display:none}
+.ll-pill.refine .ll-x{display:flex}
+
+/* thinking 干等超过 30 秒才冒出来的「存音频」按钮，在文字右边。默认 display:none，
+   只有 refine + cansave 同时成立才显示，所以别的状态压根碰不到它。 */
+.ll-save{display:none;width:26px;height:26px;border-radius:50%;border:0;background:#303036;
+ color:#fff;cursor:pointer;align-items:center;justify-content:center;flex:none;padding:0}
+.ll-save:hover{background:#3d3d43}
+.ll-pill.refine.cansave .ll-save{display:flex}
+
+/* 纯文字状态（.bare）：没有波形也没有可撤销的结果，✕/✓ 只挡视线。 */
+.ll-pill.bare .ll-wave,.ll-pill.bare .ll-x,.ll-pill.bare .ll-ok,.ll-pill.bare .ll-undo{display:none}
+
+/* 冷加载权重要好几秒，和 refine 同一套版式，只是文字换成 loading models。 */
+.ll-pill.loading .ll-wave,.ll-pill.loading .ll-ok{display:none}
+.ll-pill.loading .ll-x{display:flex}
+.ll-pill.loading .ll-text{display:flex;font-size:13px;line-height:1.45;font-weight:600;letter-spacing:.2px}
+.ll-pill.refine .ll-text{display:flex;font-size:13px;line-height:1.45;font-weight:600;letter-spacing:.2px}
+
+.ll-thinking-char{display:inline-block;animation:ll-ripple 1.15s ease-in-out infinite;
+ animation-delay:calc(var(--i)*.08s)}
+@keyframes ll-ripple{0%,70%,100%{opacity:.42;transform:translateY(0)}35%{opacity:1;transform:translateY(-2px)}}
+@media (prefers-reduced-motion:reduce){.ll-thinking-char{animation:none;opacity:1}}
+
+/* 隐藏时彻底从布局里拿掉：不占 hit-test 区域。Electron 版靠这条让鼠标"摸不到"
+   它；这边的效果是 getBoundingClientRect 量出零矩形，Rust 收到就把窗口区域清空，
+   整个窗口一个像素都不占。同一条规则，两处都指着它。 */
+.ll-pill.ll-off{display:none}
+
+.ll-wave{display:flex;align-items:center;gap:1.5px;height:35px;flex:none;justify-content:center}
+/* 圆头竖条：柱体 border-radius 两端就是半圆。别再叠 box-shadow——那会在顶/底各加
+   一个带空心的方点（截图里一排圆点、两端分叉的元凶）。 */
+.ll-wave i{width:3.5px;height:var(--h,4px);border-radius:99px;background:#ececef;
+ transition:height .03s linear}
+</style>
+</head>
+<body>
+
+<div class="ll-pill ll-off">
+ <!-- 这几个按钮用 aria-label 而不是 title。title 会让 WebView2 弹 Windows 原生
+      提示气泡，那是一个独立的 OS 窗口：不受药丸窗口边界约束，也不受本页任何
+      z-index 管，表现成「点叉的一瞬间旁边闪出一块带边框的条」。只在光标停够
+      约 500 ms 再点才赶得上，所以是偶发的。aria-label 给读屏器的信息一样，不
+      画任何东西。 -->
+ <button class="ll-x" aria-label="取消">
+  <svg width="15" height="15" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+   <path d="M2 2L10 10M10 2L2 10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+ </button>
+ <span class="ll-wave"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+ <button class="ll-ok" aria-label="确认">
+  <svg width="16" height="16" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+   <path d="M2.5 7.5L5.5 10.5L11.5 3.5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+ </button>
+ <button class="ll-undo" aria-label="撤回该词">
+  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+   <path d="M9 14 4 9l5-5M4 9h9a7 7 0 0 1 0 14h-3"/></svg>
+ </button>
+ <button class="ll-copy" aria-label="复制转录文本">
+  <svg width="15" height="15" viewBox="0 0 16 16" fill="none">
+   <rect x="5" y="3" width="8" height="10" rx="1.8" stroke="currentColor" stroke-width="1.5"/>
+   <path d="M3.5 11H3a1.5 1.5 0 0 1-1.5-1.5V3A1.5 1.5 0 0 1 3 1.5h6.5A1.5 1.5 0 0 1 11 3v.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+ </button>
+ <span class="ll-text">单击 RightAlt 说话</span>
+ <button class="ll-save" aria-label="中断思考，把录音存进历史（可重新转录）">
+  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+   <path d="M12 3v10m0 0-4-4m4 4 4-4M4 16v2a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3v-2"/></svg>
+ </button>
+</div>
+
+<script>
+const invoke = (c, a) => window.__TAURI__?.core?.invoke(c, a);
+
+const pill = document.querySelector('.ll-pill');
+const text = document.querySelector('.ll-text');
+const undo = document.querySelector('.ll-undo');
+const copy = document.querySelector('.ll-copy');
+
+// ── 尺寸 ──────────────────────────────────────────────────────────
+// 超高分辨率下 .75 的固定缩放会让药丸变成小点；1080p 为基准按屏高等比放大。
+//
+// 基准是**屏幕**而不是窗口。窗口现在只有药丸那么大（见文件头），拿 innerHeight
+// 当基准就是自激；而且远程连进来分辨率中途一变，窗口这边未必收得到 resize。
+// 每次要显示药丸之前重算一遍，代价只有一次样式失效，却保证换了分辨率立刻跟上。
+let pillK = 1;
+function fitPill() {
+  const sw = (window.screen && screen.width) || 1920;
+  const sh = (window.screen && screen.height) || 1080;
+  const k = Math.min(1.8, Math.max(.7, sh / 1080));
+  const vw = (sw / 100).toFixed(3) + 'px';
+  const st = document.documentElement.style;
+  // 值没变就别写。写了就是一次样式失效，而窗口一改大小这里就会被 resize 叫醒。
+  if (k !== pillK) { pillK = k; st.setProperty('--ll-k', k.toFixed(3)); }
+  if (vw !== st.getPropertyValue('--ll-vw')) st.setProperty('--ll-vw', vw);
+  return k;
+}
+fitPill();
+addEventListener('resize', fitPill);
+
+// ── 把药丸的大小报给 Rust ─────────────────────────────────────────
+// Electron 靠 forward:true 让 DOM 自己做悬停检测，这边做不到（见文件头）。
+// .ll-off 是 display:none，量出来就是零矩形，等于告诉 Rust「窗口一个像素都不占」。
+//
+// 报的是**大小**不是位置：摆在哪由 Rust 按 workArea 算（底部居中），这边给不出
+// 屏幕坐标，也不该给——分辨率一变，页面这侧是最后一个知道的。
+//
+// 只在药丸显示期间跑 rAF。一直跑着会把合成器整晚吊醒，而药丸绝大多数时间是
+// 藏着的；藏起来那一下补报一次零矩形就够了。
+let lastKey = '', watching = false;
+function report() {
+  const off = pill.classList.contains('ll-off');
+  const r = off ? { width:0, height:0 } : pill.getBoundingClientRect();
+  const lift = 12 * pillK;
+  const key = off ? 'off' : `${r.width|0},${r.height|0},${lift|0}`;
+  if (key === lastKey) return;
+  lastKey = key;
+  invoke('pill_rect', { w:r.width, h:r.height, lift });
+}
+function watch() {
+  if (watching) return;
+  watching = true;
+  (function loop() {
+    if (pill.classList.contains('ll-off')) { watching = false; report(); return; }
+    report();
+    requestAnimationFrame(loop);
+  })();
+}
+// 药丸的可点边界就是窗口边界：窗口只有药丸这么大，外面那一块压根不属于这个
+// 窗口，点击天然落到底下的程序里。旧版那套按悬停放行的做法在触摸屏上必然漏第一
+// 下，正是「悠悠远程上手指点不到确认键」的根因（见 src/pill.rs 的文件头）。
+new MutationObserver(() => {
+  if (pill.classList.contains('ll-off')) { report(); return; }
+  // 显示之前先把 --ll-k / --ll-vw 按当下的屏幕重算：药丸的大小要先定下来，
+  // 窗口才量得准。远程中途换分辨率就靠这一下跟上。
+  fitPill();
+  watch();
+}).observe(pill, { attributes:true, attributeFilter:['class'] });
+
+// ── 状态机（照搬 preload.cjs:1786-1947）────────────────────────────
+let resultText = '';
+copy.onclick = () => { if (!resultText) return; invoke('copy_text', { text: resultText }); resultText = ''; hideLater(0); };
+
+addEventListener('localless:result', e => {
+  resultText = String(e.detail || '');
+  stopLevel(); show();
+  pill.className = 'll-pill result';
+  text.textContent = resultText;
+  requestAnimationFrame(() => {
+    if (resultText.includes('\n') || text.scrollWidth > text.clientWidth + 1) pill.classList.add('tall');
+  });
+});
+
+let learnedId = null, currentUiState = 'off', pendingLearnNotice = null;
+function showLearnNotice(d) {
+  learnedId = d.id; stopLevel(); show();
+  pill.className = 'll-pill learned';
+  text.textContent = (d.term || '词语') + ' 已添加进 ' + (d.tagName || '词库');
+  hideLater(Number(d.ms) || 5000);
+}
+// learned 状态下 ✕ 和 ↩ 都是「这个词我不要」：不光收掉提示，还要把刚加进词库的
+// 词撤回。以前 ✕ 只清了 learnedId 就藏起来，词还留在词库里——点了等于没点。
+// 想留下这个词就别按，5 秒后自己消失。
+function dismissLearned(doUndo) {
+  if (doUndo && learnedId) invoke('undo_learned_word', { id: learnedId });
+  learnedId = null;
+  hideLater(0);
+}
+undo.onclick = () => dismissLearned(true);
+addEventListener('localless:learned', e => {
+  const d = e.detail || {};
+  if (currentUiState === 'refine') pendingLearnNotice = d; else showLearnNotice(d);
+});
+
+// --i 必须走 style.setProperty，不能写成 innerHTML 里的 style="--i:n"：Tauri 给
+// style-src 塞了 nonce，'unsafe-inline' 随之失效，标记里的 style 属性被 CSP 整条丢掉，
+// 每个字的 animation-delay 都成了 0——八个字齐步明暗，涟漪就没了。
+const setThinkingText = label => {
+  const s = label || 'thinking';
+  text.replaceChildren(...[...s].map((c, i) => {
+    const el = document.createElement('span');
+    el.className = 'll-thinking-char';
+    el.style.setProperty('--i', i);
+    el.textContent = c === ' ' ? ' ' : c;
+    return el;
+  }));
+};
+
+// learned 状态下 ✕ 是隐藏的（左撤回 / 右勾），所以这里不用再处理它。
+pill.querySelector('.ll-x').onclick = () => {
+  if (pill.classList.contains('result')) { resultText = ''; hideLater(0); }
+  else dispatchEvent(new CustomEvent('localless:rec-cancel'));
+};
+// learned 状态下勾＝「知道了」：收起提示，词留在词库里。其它状态下勾还是「确认录音」。
+pill.querySelector('.ll-ok').onclick = () => {
+  if (pill.classList.contains('learned')) return dismissLearned(false);
+  dispatchEvent(new CustomEvent('localless:rec-stop'));
+};
+// 点了就把这一轮生成扔掉、音频存进历史。真正的活儿在录音那一侧，这边只负责把
+// 意图喊出去——和 ✕/✓ 用的是同一套事件通道。
+pill.querySelector('.ll-save').onclick = () => dispatchEvent(new CustomEvent('localless:rec-save'));
+
+let hideTimer = null;
+function show() { pill.classList.remove('ll-off'); if (hideTimer) { clearTimeout(hideTimer); hideTimer = null; } }
+function hideLater(ms) {
+  if (hideTimer) clearTimeout(hideTimer);
+  hideTimer = setTimeout(() => pill.classList.add('ll-off'), ms);
+}
+
+// ── 波形 ──────────────────────────────────────────────────────────
+const bars = [...pill.querySelectorAll('.ll-wave i')];
+// 基线弧：每根柱按离中心的远近给一个权重（1 → 0.12），两头收尖的穹顶。
+const n = bars.length, mid = (n - 1) / 2;
+const baseW = bars.map((_, i) => { const t = Math.abs(i - mid) / (mid || 1); return 1 - Math.pow(t, 1.5) * 0.96; });
+const MIN_PX = 2.5, MAX_PX = 38;
+const setBar = (i, px) => {
+  const v = (typeof px === 'number' && isFinite(px)) ? px : MIN_PX;
+  bars[i].style.setProperty('--h', Math.max(MIN_PX, v).toFixed(2) + 'px');
+};
+bars.forEach((_, i) => setBar(i, MIN_PX));
+
+const CALIBRATE_MS = 700, ABS_GATE = 0.0015;
+let noiseFloor = ABS_GATE, speechRef = 0.035;
+const smooth = new Array(n).fill(MIN_PX);
+let micStream = null, micCtx = null, analyser = null, rafId = null, levelData = null;
+
+function startLevel() {
+  if (micStream) return;
+  bars.forEach((_, i) => setBar(i, MIN_PX));
+  // 这一轮波形的极值，留给录音那一侧收尾时写日志。药丸的电平流和真正被录下来的
+  // 音频是两条各自独立的 getUserMedia，「柱子在跳」从来不等于「录到了声音」，
+  // 两组数并排写进同一行，「没听清」才分得清是没录到还是录到了没转出来。
+  window.__llLevelStats = { n:0, rmsMin:Infinity, rmsMax:0, aMax:0, voiced:0, label:'(getUserMedia 未返回)' };
+  // 跟着录音流实际拿到的那支麦克风走。这条流从前自己问一次「默认是谁」，于是和
+  // 录音流各得一个答案——柱子跳的是 iPad 的麦克风，录下来的却是桌上那支。
+  const NOPROC = { echoCancellation:false, noiseSuppression:false, autoGainControl:false };
+  const wantId = window.__llMicDeviceId;
+  (wantId
+    ? navigator.mediaDevices.getUserMedia({ audio: Object.assign({ deviceId:{ exact: wantId } }, NOPROC) })
+        .catch(() => navigator.mediaDevices.getUserMedia({ audio: NOPROC }))
+    : navigator.mediaDevices.getUserMedia({ audio: NOPROC })
+  ).then(st => {
+    micStream = st;
+    const tr0 = st.getAudioTracks()[0];
+    const s0 = tr0 && tr0.getSettings ? tr0.getSettings() : null;
+    const p0 = s0 ? ([s0.echoCancellation && 'AEC', s0.noiseSuppression && 'NS', s0.autoGainControl && 'AGC']
+                      .filter(Boolean).join('+') || '无') : '?';
+    if (window.__llLevelStats)
+      window.__llLevelStats.label = (tr0 ? (tr0.label || '(无名)') : '(无轨道)') + ' 处理=' + p0;
+    micCtx = new AudioContext();
+    analyser = micCtx.createAnalyser(); analyser.fftSize = 1024;
+    micCtx.createMediaStreamSource(st).connect(analyser);
+    levelData = new Float32Array(analyser.fftSize);
+    const calibration = [], startedAt = performance.now();
+    (function loop() {
+      if (!micStream) return;
+      analyser.getFloatTimeDomainData(levelData);
+      let sum = 0;
+      for (let i = 0; i < levelData.length; i++) sum += levelData[i] * levelData[i];
+      const rms = Math.sqrt(sum / levelData.length);
+      const S = window.__llLevelStats;
+      if (S) { S.n++; if (rms < S.rmsMin) S.rmsMin = rms; if (rms > S.rmsMax) S.rmsMax = rms; }
+      if (performance.now() - startedAt < CALIBRATE_MS) {
+        calibration.push(rms);
+        const sorted = [...calibration].sort((a, b) => a - b);
+        noiseFloor = Math.max(ABS_GATE, sorted[Math.floor(sorted.length * .8)] || ABS_GATE);
+        for (let i = 0; i < n; i++) { smooth[i] = MIN_PX; setBar(i, MIN_PX); }
+        window.__llLevel = { rms:+rms.toFixed(4), noiseFloor:+noiseFloor.toFixed(4), calibrating:true, a:0 };
+        rafId = requestAnimationFrame(loop); return;
+      }
+      const gate = Math.max(ABS_GATE, noiseFloor * 1.8);
+      if (rms <= gate) {
+        noiseFloor += (rms - noiseFloor) * 0.006;
+        speechRef = Math.max(gate * 4, speechRef * 0.998);
+        for (let i = 0; i < n; i++) { smooth[i] = MIN_PX; setBar(i, MIN_PX); }
+        window.__llLevel = { rms:+rms.toFixed(4), noiseFloor:+noiseFloor.toFixed(4), gate:+gate.toFixed(4), speechRef:+speechRef.toFixed(4), a:0, silent:true };
+        rafId = requestAnimationFrame(loop); return;
+      }
+      // 参考电平必须「慢跟」。旧写法 speechRef = max(rms, …) 让参考瞬间等于当前
+      // 电平，(rms-gate)/(speechRef-gate) 恒为 1 → 一出声就顶满。改成非对称跟随：
+      // 上升 ATTACK 慢爬（约 1 秒到位），下降 DECAY 更慢，参考稳定在「你平时的音量」，
+      // 于是正常音节 0.5~1、气口接近 0，小声说话也有明显起伏。
+      const ATTACK = 0.16, DECAY = 0.988;
+      if (rms > speechRef) speechRef += (rms - speechRef) * ATTACK;
+      else speechRef = Math.max(gate * 3, speechRef * DECAY);
+      const span = Math.max(.001, speechRef - gate);
+      const norm = v => { const x = Math.pow(Math.min(1, Math.max(0, (v - gate) / span)), 0.42); return isFinite(x) ? x : 0; };
+      const a = norm(rms);
+      if (S) { S.voiced++; if (a > S.aMax) S.aMax = a; }
+      window.__llLevel = { rms:+rms.toFixed(4), noiseFloor:+noiseFloor.toFixed(4), gate:+gate.toFixed(4), speechRef:+speechRef.toFixed(4), a:+a.toFixed(3), silent:false };
+      // 每根柱在真实音量包络上叠加独立的平滑随机目标；静音分支仍强制 MIN_PX。
+      // 这样说话时高度持续错落变化，不会退化成固定菱形，也不会无声乱跳。
+      const nowFrame = performance.now();
+      if (!window.__llJitter || window.__llJitter.length !== n)
+        window.__llJitter = new Array(n).fill(0).map(() => ({ v:.45 + Math.random() * .55, t:0 }));
+      for (let i = 0; i < n; i++) {
+        const j = window.__llJitter[i];
+        if (nowFrame >= j.t) { j.v = .38 + Math.random() * .62; j.t = nowFrame + 18 + Math.random() * 40; }
+        const av = a * j.v;
+        const t = MIN_PX + av * baseW[i] * (MAX_PX - MIN_PX);
+        // 起振几乎瞬时、回落略缓：柱子紧咬音量包络，同时不至于抖成噪点。
+        // 起落速度整体放慢 0.1 倍（系数 ×0.9），柱子看着更从容。
+        smooth[i] += (t - smooth[i]) * (t > smooth[i] ? 0.828 : 0.495);
+        setBar(i, Math.min(MAX_PX, smooth[i]));
+      }
+      rafId = requestAnimationFrame(loop);
+    })();
+  }).catch(() => {});
+}
+
+function stopLevel() {
+  if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
+  if (micStream) { micStream.getTracks().forEach(t => t.stop()); micStream = null; }
+  if (micCtx) { micCtx.close().catch(() => {}); micCtx = null; }
+  analyser = null;
+  smooth.fill(MIN_PX); noiseFloor = ABS_GATE; speechRef = 0.035;
+  bars.forEach((_, i) => setBar(i, MIN_PX));
+}
+
+addEventListener('localless:ui', e => {
+  const d = e.detail || {};
+  currentUiState = d.t || 'off';
+  if (d.t === 'rec') startLevel(); else stopLevel();
+  // rec 阶段只有波形，不显字：实时文字全部落在目标输入框里。
+  text.style.display = (d.t === 'rec') ? 'none' : '';
+  show();
+  pill.className = 'll-pill ' + (d.t || '');
+  if (d.t === 'ready') { text.textContent = d.s || '就绪'; hideLater(1800); }
+  else if (d.t === 'rec') { text.textContent = ''; }
+  else if (d.t === 'loading') { setThinkingText('loading models'); }
+  else if (d.t === 'refine') { setThinkingText(); if (d.save) pill.classList.add('cansave'); }
+  else if (d.t === 'done') {
+    // 转写完成 → 药丸立刻消失（连 ✓ 都不显示）。但带文字的 done（没听清 / 已取消 /
+    // 引擎已重启）要看得见，否则 hideLater(0) 会在同一帧把它抹掉，用户只感到
+    // 「什么都没发生」。带文字时加 .bare：只留文字，两侧的 ✕/✓ 全隐掉（取消了
+    // 还给按钮点没意义）。
+    stopLevel(); text.textContent = d.s || ''; if (d.s) pill.classList.add('bare');
+    hideLater(d.s ? 1600 : 0);
+    if (pendingLearnNotice) { const p = pendingLearnNotice; pendingLearnNotice = null; setTimeout(() => showLearnNotice(p), 250); }
+  }
+});
+
+// Rust 那边把引擎状态转成同一套事件，页面这侧和 Electron 版收的是一模一样的东西。
+window.__TAURI__?.event?.listen('localless://ui', e => {
+  const d = e.payload || {};
+  dispatchEvent(new CustomEvent('localless:' + (d.kind || 'ui'), { detail: d.detail }));
+});
+
+report();
+</script>
+<!-- 录音链路。必须排在上面那段之后：它一装上就 ensureWs() 并开始热麦克风，而那些
+     状态要靠上面注册好的 localless:ui / :result / :learned 监听器才画得出来。 -->
+<script src="recorder.js"></script>
+</body>
+</html>

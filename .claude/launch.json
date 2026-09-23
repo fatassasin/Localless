@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "tauri-preview",
+      "runtimeExecutable": "python",
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "8905",
+        "--directory",
+        "tauri/src"
+      ],
+      "port": 8905
+    }
+  ]
+}
