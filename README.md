@@ -15,23 +15,26 @@
 
 ## 环境
 - Windows 10 / 11，NVIDIA 显卡（也有纯 CPU 模式，但慢）
-- Rust（编译 Tauri 壳）
-- Python 3.11，装 PyTorch（CUDA 版）、`transformers`、`accelerate`、`websockets`、`numpy`、`scipy`、`soundfile`
+- [Python 3.11](https://www.python.org/downloads/)
+- 从源码编译还要 Rust
 
-## 安装
-```bash
-python -m venv app/.venv
-```
-```bash
-app/.venv/Scripts/python.exe app/download-model.py --model qwen3-asr-1.7b-hf --models-dir models
-```
+## 安装（Release 包）
+1. 从 [Releases](https://github.com/fatassasin/Localless/releases) 下载 zip，解压到任意目录
+2. 在解压出的目录里运行下面这条命令。它会建 Python 环境、装 PyTorch（CUDA 版），再下载语音模型，总共约 7 GB：
+   ```bash
+   powershell -ExecutionPolicy Bypass -File setup.ps1
+   ```
+   显存小可以加 `-Model qwen3-asr-0.6b-hf`，装完到设置 → 模型里选它；没有 NVIDIA 显卡就加 `-Cpu`
+3. 双击 `localless.exe`
+
+## 从源码编译
+先跑一遍上面的 `setup.ps1`，再编译：
 ```bash
 cd tauri/src-tauri && cargo build --release
 ```
-模型也可以在设置窗口 → 模型里下载。
 
 ## 打开方式
-- **双击** `tauri/src-tauri/target/release/localless.exe`
+- **双击** `localless.exe`（源码编译的在 `tauri/src-tauri/target/release/`）
 - **开机自启**：设置窗口 → 通用 → 开机启动
 
 ## 快捷键

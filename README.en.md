@@ -17,23 +17,26 @@ The interface is currently in Chinese.
 
 ## Requirements
 - Windows 10 / 11 with an NVIDIA GPU. A CPU-only mode exists, but it is slow.
-- Rust, to build the Tauri shell.
-- Python 3.11 with PyTorch (CUDA build), `transformers`, `accelerate`, `websockets`, `numpy`, `scipy` and `soundfile`.
+- [Python 3.11](https://www.python.org/downloads/)
+- Rust, only if you build from source
 
-## Install
-```bash
-python -m venv app/.venv
-```
-```bash
-app/.venv/Scripts/python.exe app/download-model.py --model qwen3-asr-1.7b-hf --models-dir models
-```
+## Install (release package)
+1. Download the zip from [Releases](https://github.com/fatassasin/Localless/releases) and extract it anywhere.
+2. In the extracted folder, run the command below. It builds the Python environment, installs PyTorch (CUDA build) and downloads the speech model, about 7 GB in total:
+   ```bash
+   powershell -ExecutionPolicy Bypass -File setup.ps1
+   ```
+   On a GPU with little VRAM, add `-Model qwen3-asr-0.6b-hf`, then pick it under Settings → Models. Without an NVIDIA GPU, add `-Cpu`.
+3. Double-click `localless.exe`.
+
+## Build from source
+Run `setup.ps1` above first, then:
 ```bash
 cd tauri/src-tauri && cargo build --release
 ```
-You can also download models from the Settings window, on the Models page.
 
 ## Launch
-- **Double-click** `tauri/src-tauri/target/release/localless.exe`.
+- **Double-click** `localless.exe` (a source build puts it in `tauri/src-tauri/target/release/`).
 - **Start with Windows**: Settings → General → Launch at startup.
 
 ## Shortcut
