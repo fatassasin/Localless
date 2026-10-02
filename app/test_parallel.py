@@ -738,6 +738,67 @@ class SessionAudioProcessingTests(unittest.IsolatedAsyncioTestCase):
         np.testing.assert_allclose(seen, stored[:len(seen)], atol=1 / 32767)
 
 
+class EmptyRetryTests(unittest.IsolatedAsyncioTestCase):
+    """模型判成没说话（吐空）：不设人声门槛，一律锁定语言再转一遍；
+    锁定后吐的是提示词复述或语气词才算空。"""
+
+    class FlakyAsr(StubAsr):
+        def __init__(self, first, forced):
+            super().__init__()
+            self.results = [first, forced]
+            self.forced_langs = []
+
+        async def transcribe(self, pcm, initial_prompt=None, lang=None,
+                             qwen_ctx_max_chars=None, force_lang=None):
+            await super().transcribe(pcm, initial_prompt, lang, qwen_ctx_max_chars)
+            self.forced_langs.append(force_lang)
+            return self.results.pop(0), lang
+
+    async def run_session(self, first, forced, settings=None, samples=16000):
+        import numpy as np
+        from engine import Session, AudioProcessor
+        asr = self.FlakyAsr(first, forced)
+        session = Session(object(), "empty-retry", asr, object(),
+                          GpuScheduler(FakeProvider()),
+                          send_json=lambda d: asyncio.sleep(0))
+        session.audio_processor = AudioProcessor(0, False)
+        session.allowed_langs = {"en", "zh-Hans"}
+        session.auto_detect = False
+        session.chunks = [np.full(samples, 0.001, np.float32).tobytes()]
+        session.voiced_s = 0.0
+        with patch("engine.load_settings", return_value=settings or {}), \
+             patch("engine.asr_resident", return_value=True), \
+             patch("engine.free_vram_mb", return_value=None), \
+             patch("engine.stage_estimate_mb", return_value=10):
+            await session.finalize()
+        return asr, session
+
+    async def test_empty_retries_with_forced_chinese_even_without_voice(self):
+        asr, session = await self.run_session("", "你好")
+        self.assertEqual(asr.forced_langs, [None, "zh"])
+        self.assertEqual(session.raw_text, "你好")
+
+    async def test_very_short_audio_still_reaches_model(self):
+        asr, session = await self.run_session("好", "", samples=800)
+        self.assertEqual(asr.forced_langs, [None])
+        self.assertEqual(session.raw_text, "好")
+
+    async def test_filler_from_forced_pass_is_empty(self):
+        asr, session = await self.run_session("", "嗯。")
+        self.assertEqual(session.raw_text, "")
+
+    async def test_prompt_echo_from_forced_pass_is_empty(self):
+        st = {"customWords": ["Alethea", "Nayuta"],
+              "asrPrompt": "数字尽量写成阿拉伯数字，不写中文数字\nVocabulary: {{wordsByTag}}"}
+        asr, session = await self.run_session(
+            "", "数字尽量写成阿拉伯数字，不写中文数字（「3 个」", settings=st)
+        self.assertEqual(session.raw_text, "")
+
+    def test_short_vocab_word_is_not_echo(self):
+        from engine import forced_is_noise
+        self.assertFalse(forced_is_noise("Localless。", "Vocabulary: Localless, Tauri"))
+
+
 class SessionSettingsSnapshotTests(unittest.IsolatedAsyncioTestCase):
     async def test_context_and_audio_settings_are_frozen_at_start(self):
         from engine import Session

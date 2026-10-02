@@ -11,6 +11,7 @@ mod micwatch;
 mod micwin;
 mod models;
 mod mute;
+mod outside;
 mod paste;
 mod pill;
 mod pipeline;
@@ -60,6 +61,11 @@ async fn copy_text(text: String) -> Result<(), String> {
 
 
 pub fn run() {
+    // 从 Claude 桌面版这类打包应用里起的，历史和设置会写进那个包的副本——见 outside.rs。
+    if outside::relaunch_if_redirected() {
+        return;
+    }
+
     // 麦克风那一关已经过了（PD100X 峰值 0.0161，UU 虚拟声卡是静音因为没人推流）。
     // 页面留着不删：换 WebView2 运行时之后要能一条命令重跑。
     let mic_check = std::env::var("LOCALLESS_MIC_CHECK").is_ok();

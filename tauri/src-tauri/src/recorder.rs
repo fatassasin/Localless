@@ -105,7 +105,7 @@ pub fn toggle(app: &AppHandle, source: &str) {
         crate::debug::log(&format!("toggle({source}) 药丸窗口不在"));
         return;
     };
-    let _ = bar.set_always_on_top(true);
+    crate::pill::raise_topmost(&bar);
     crate::debug::log(&format!("toggle({source})"));
     let _ = bar.emit_to(crate::BAR, "localless://toggle", json!({ "source": source }));
 }

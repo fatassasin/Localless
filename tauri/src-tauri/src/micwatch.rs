@@ -388,7 +388,13 @@ fn client_looks_desktop(app: &AppHandle) -> Option<bool> {
     if s.width == 0 || s.height == 0 {
         return None;
     }
-    Some(s.width > CLIENT_DESKTOP_W + CLIENT_SIZE_SLACK || s.height > CLIENT_DESKTOP_H + CLIENT_SIZE_SLACK)
+    Some(size_looks_desktop(s.width, s.height))
+}
+
+/// 竖屏一律当触屏：2026-09-30 手机竖着连，虚拟屏是 1244×2160 @200%，高度超过
+/// 1080p 就被当成电脑，图标整晚不出现。电脑客户端没有竖着连的。
+fn size_looks_desktop(w: u32, h: u32) -> bool {
+    w > h && (w > CLIENT_DESKTOP_W + CLIENT_SIZE_SLACK || h > CLIENT_DESKTOP_H + CLIENT_SIZE_SLACK)
 }
 
 fn start_remote(app: &AppHandle) {
@@ -671,6 +677,13 @@ mod tests {
         // 关掉这一关就永远放行，不看另外两个。
         st.remote_only = false;
         assert!(passes_remote_only(&st));
+    }
+
+    #[test]
+    fn 客户端尺寸() {
+        assert!(size_looks_desktop(3840, 2160), "这台电脑");
+        assert!(!size_looks_desktop(1920, 1080), "iPad / 横屏手机");
+        assert!(!size_looks_desktop(1244, 2160), "竖屏手机");
     }
 
     #[test]

@@ -851,6 +851,22 @@ ASR_FREE_FLOOR_MB = 1400
 ASR_WATCH_S = 90
 LOAD_WATCH_S = 240
 
+# 锁定语言重试时，模型没话可说就会复述 system 段或吐一个语气词。
+_FILLER_CHARS = set("嗯啊呃额哦噢唔哼")
+
+
+def forced_is_noise(text: str, prompt: str | None) -> bool:
+    """锁定语言那一遍的输出是不是「其实没话」。
+
+    实测静音/纯底噪锁定成 Chinese 后，带词表时吐的是 system 段原文（「人名: Alethea…」
+    「数字尽量写成阿拉伯数字…」），不带词表时吐「嗯。」。真说了话的一条都没被误伤。
+    要前 16 个字都对得上才算复述：短输出可能正好是词表里的一个词，那是真说了。"""
+    t = re.sub(r"[\W_]+", "", text or "")
+    if not t or set(t) <= _FILLER_CHARS:
+        return True
+    p = re.sub(r"[\W_]+", "", prompt or "")
+    return len(t) >= 16 and t[:16] in p
+
 
 def asr_budget(dur_s: float) -> float:
     """一段 dur_s 秒的音频，允许 ASR 跑多久。
@@ -1257,17 +1273,26 @@ class Asr:
 
     async def transcribe(self, pcm: np.ndarray, initial_prompt: str | None,
                          lang: str | None = None,
-                         qwen_ctx_max_chars=None) -> tuple[str, str | None]:
+                         qwen_ctx_max_chars=None,
+                         force_lang: str | None = None) -> tuple[str, str | None]:
+        """force_lang：把回复开头直接写成「language X<asr_text>」，模型就没法先判一句
+        language None 然后收工，只能往下转。"""
         def run():
             self._ensure_loaded()
             # 闸设在这儿而不是外面的 asyncio 层：真正会卡死的是下面这段原生调用，
             # 而 asyncio 那圈 wait_for 拦不住它（实测一次都没响过）。
             with gpu_watchdog(f"ASR 推理 {self.model_id} ({len(pcm)/SAMPLE_RATE:.1f}s 音频)",
                               max(ASR_WATCH_S, asr_budget(len(pcm) / SAMPLE_RATE))):
-                inputs=self._qwen_inputs(pcm,initial_prompt,lang,qwen_ctx_max_chars).to(self.model.device,self.model.dtype)
+                inputs=self._qwen_inputs(pcm,initial_prompt,lang,qwen_ctx_max_chars,force_lang).to(self.model.device,self.model.dtype)
                 max_tokens=max(32,min(256,int(len(pcm)/SAMPLE_RATE*12)+24))
                 ids=self.model.generate(**inputs,max_new_tokens=max_tokens,do_sample=False)[:,inputs["input_ids"].shape[1]:]
                 text=self.processor.decode(ids,return_format="transcription_only")[0]
+                if not str(text).strip():
+                    # 空结果时把模型真正吐出来的 token 原样记下，含特殊符号。
+                    # transcription_only 会把 "language None<asr_text>" 这类输出也剥成空串，
+                    # 光看空串分不出是"判成没说话"还是"输出格式坏了"。
+                    LOG.info("ASR 原始输出（含特殊符号）=%r",
+                             self.processor.tokenizer.decode(ids[0],skip_special_tokens=False)[:200])
                 return str(text).strip(),lang
         async with self.lock:
             try:
@@ -1295,7 +1320,7 @@ class Asr:
             return _QWEN_LANG_NAMES.get(str(lang).split("-")[0].lower())
 
     def _qwen_inputs(self, pcm: np.ndarray, ctx: str | None, lang: str | None,
-                     max_chars=None):
+                     max_chars=None, force_lang: str | None = None):
         """Qwen3-ASR 的上下文（词表/历史）只认 system 段。
 
         原来这里写的是 `apply_transcription_request(..., prompt=initial_prompt)`，而那个函数
@@ -1322,8 +1347,17 @@ class Asr:
         self.last_prompt = "\n".join(x for x in (name, ctx) if x)
         msgs.append({"role": "user",
                      "content": [{"type": "audio", "audio": pcm.astype(np.float32)}]})
-        return self.processor.apply_chat_template([msgs], tokenize=True,
-                                                  add_generation_prompt=True, return_dict=True)
+        inputs = self.processor.apply_chat_template([msgs], tokenize=True,
+                                                    add_generation_prompt=True, return_dict=True)
+        if force_lang:
+            import torch
+            head = f"language {self._qwen_lang_name(force_lang) or 'Chinese'}<asr_text>"
+            extra = self.processor.tokenizer(head, add_special_tokens=False,
+                                             return_tensors="pt")["input_ids"]
+            inputs["input_ids"] = torch.cat([inputs["input_ids"], extra], 1)
+            inputs["attention_mask"] = torch.cat(
+                [inputs["attention_mask"], torch.ones_like(extra)], 1)
+        return inputs
 
 # ---------------------------------------------------------------- LLM
 
@@ -1619,6 +1653,15 @@ class Session:
         allowed = [x for x in self.allowed_langs if x]
         return allowed[0].split("-")[0] if len(allowed) == 1 else None
 
+    def forced_lang(self) -> str:
+        """锁定重转用哪种语言：指定了就用指定的；否则允许列表里有中文就中文（中文
+        模式本来就转得出夹杂的英文词），再否则取列表第一个。"""
+        fixed = self.asr_lang()
+        if fixed:
+            return fixed
+        bare = sorted(self.allowed_bare())
+        return "zh" if "zh" in bare or not bare else bare[0]
+
     def force_traditional(self) -> bool:
         """自动检测开启、且允许列表只含繁中不含简中时，输出用 OpenCC 转繁体。"""
         return self.auto_detect and "zh-Hant" in self.allowed_langs and "zh-Hans" not in self.allowed_langs
@@ -1698,7 +1741,8 @@ class Session:
         dur = len(pcm) / SAMPLE_RATE
         LOG.info("finalize %s: %.1fs audio", self.audio_id[:8], dur)
         try:
-            if dur < 0.35:
+            # 不设时长门槛：多短都送进模型，空音频才跳过。
+            if not len(pcm):
                 await self.send_refined("")
                 return
             t0 = time.monotonic()
@@ -1749,6 +1793,23 @@ class Session:
                                         lang=self.asr_lang(),
                                         qwen_ctx_max_chars=self.qwen_ctx_max_chars),
                     timeout=asr_budget(dur))
+                # 吐空＝模型先判了一句「language None」（没人说话）就收工。实测这个判断
+                # 会被 system 段带偏：同一段听得清的录音，带词表判 None，不带就转得出；
+                # 重载模型没用。所以不让它判：锁定语言再转一遍，没话的话它只会复述
+                # 提示词或吐个「嗯」，那种才算空。
+                if not text.strip():
+                    force = self.forced_lang()
+                    forced, _ = await asyncio.wait_for(
+                        self.asr.transcribe(pcm, initial_prompt=wprompt,
+                                            lang=self.asr_lang(),
+                                            qwen_ctx_max_chars=self.qwen_ctx_max_chars,
+                                            force_lang=force),
+                        timeout=asr_budget(dur))
+                    noise = forced_is_noise(forced, wprompt)
+                    LOG.info("ASR 判成没说话，锁定 %s 重转：%r%s", force, forced[:120],
+                             "（复述提示词/语气词，按空处理）" if noise else "")
+                    if not noise:
+                        text, lang = forced, force
             asr_ms = (time.monotonic() - t0) * 1000
             # 用上面那个 resident（已经把显存余量算进去了），不是重读设置：
             # 前面因为显存紧张才卸的 LLM，这里要是又按设置判成"常驻"，ASR 就会留在

@@ -1,24 +1,26 @@
 # Verify the logon autostart entry actually starts the app.
 #
-# It runs the HKCU Run value VERBATIM, read back from the registry, rather than a
-# hand-retyped equivalent. The repo path contains non-ASCII characters, so typing
-# it here would both mangle (Windows PowerShell reads .ps1 as ANSI) and test the
-# wrong string -- the point is to prove what Windows will actually execute.
+# Autostart is a Localless.lnk in the per-user Startup folder (Run-key entries were
+# never executed at logon on this machine and showed up iconless in Settings).
+# The shortcut target is read back from the .lnk rather than retyped: the repo
+# path contains non-ASCII characters, so typing it here would both mangle
+# (Windows PowerShell reads .ps1 as ANSI) and test the wrong string.
 #
 # ASCII only on purpose, same reason.
 $ErrorActionPreference = 'Stop'
 
-$key = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Run'
-$cmd = (Get-ItemProperty $key -Name Localless).Localless
-Write-Host "RUN value: $cmd"
+$lnk = Join-Path ([Environment]::GetFolderPath('Startup')) 'Localless.lnk'
+$target = (New-Object -ComObject WScript.Shell).CreateShortcut($lnk).TargetPath
+Write-Host "shortcut: $lnk -> $target"
+
+$old = Get-ItemProperty 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Run' -Name Localless -ErrorAction SilentlyContinue
+if ($old) { Write-Host "WARNING: Run\Localless still present, logon would start two copies" }
 
 $before = @(Get-Process localless -ErrorAction SilentlyContinue).Count
 Write-Host "before: localless.exe=$before"
 
-# Explorer launches Run entries through CreateProcess with the value as the
-# command line. 'cmd /c' with the value unquoted reproduces that closely enough:
-# wscript.exe resolves off PATH and the quoted script path stays one argument.
-cmd /c $cmd
+# Launch through the shell like Explorer does for Startup-folder items.
+Start-Process -FilePath $lnk
 Start-Sleep -Seconds 14
 
 Write-Host '--- after ---'
