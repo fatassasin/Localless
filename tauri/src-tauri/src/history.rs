@@ -277,18 +277,23 @@ pub async fn save_result(id: String, raw_text: String, refined_text: String, dur
         return;
     }
     let _ = tauri::async_runtime::spawn_blocking(move || {
-        let Ok(c) = open() else { return };
+        let c = match open() {
+            Ok(c) => c,
+            Err(e) => return crate::debug::log(&format!("save_result 打不开历史库：{e}")),
+        };
         let now = now_iso();
         // ON CONFLICT 那一串和 Electron 版一字不差。撞上的情形是 save_audio_only
         // 先落了一条 audio_only，这里要把它升级成 completed。
-        let _ = c.execute(
+        if let Err(e) = c.execute(
             "INSERT INTO history(id,status,mode,raw_text,refined_text,duration,created_at,updated_at)
              VALUES(?,'completed','voice_transcript',?,?,?,?,?)
              ON CONFLICT(id) DO UPDATE SET raw_text=excluded.raw_text,
                refined_text=excluded.refined_text,duration=excluded.duration,
                status='completed',updated_at=excluded.updated_at",
             rusqlite::params![id, raw_text, refined_text, duration, now, now],
-        );
+        ) {
+            crate::debug::log(&format!("save_result 写历史失败：{e}"));
+        }
     })
     .await;
 }
@@ -336,15 +341,20 @@ pub async fn save_audio_only(request: tauri::ipc::Request<'_>) -> Result<String,
         std::fs::write(&p, wav).map_err(|e| e.to_string())?;
 
         let path = p.to_string_lossy().into_owned();
-        if let Ok(c) = open() {
-            let now = now_iso();
-            let _ = c.execute(
-                "INSERT INTO history(id,status,mode,duration,audio_local_path,debug_info,created_at,updated_at)
-                 VALUES(?,'audio_only','voice_transcript',?,?,?,?,?)
-                 ON CONFLICT(id) DO UPDATE SET audio_local_path=excluded.audio_local_path,
-                   duration=excluded.duration,updated_at=excluded.updated_at",
-                rusqlite::params![id, duration, path, reason, now, now],
-            );
+        match open() {
+            Ok(c) => {
+                let now = now_iso();
+                if let Err(e) = c.execute(
+                    "INSERT INTO history(id,status,mode,duration,audio_local_path,debug_info,created_at,updated_at)
+                     VALUES(?,'audio_only','voice_transcript',?,?,?,?,?)
+                     ON CONFLICT(id) DO UPDATE SET audio_local_path=excluded.audio_local_path,
+                       duration=excluded.duration,updated_at=excluded.updated_at",
+                    rusqlite::params![id, duration, path, reason, now, now],
+                ) {
+                    crate::debug::log(&format!("save_audio_only 写历史失败：{e}"));
+                }
+            }
+            Err(e) => crate::debug::log(&format!("save_audio_only 打不开历史库：{e}")),
         }
         trim_recordings(&dir);
         Ok(path)

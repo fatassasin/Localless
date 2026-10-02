@@ -294,7 +294,7 @@ t('uuMic：认后半截，前半截跟着主机声卡变', () => {
 
 const snap = peak => ({ peak });
 
-// 药丸上那句（short=true）只有两种：「没录到」和「没听清」。故意不猜原因——
+// 药丸上那句（short=true）只报事实：「没录到」「没转出字」「没听清」。故意不猜原因——
 // 「可能听错了麦克风」这种话在没录到的时候是瞎猜，而且 .ll-text 是 nowrap +
 // 省略号，写长了也只显示前四个字。真正的区分留给 short=false 那句，它带实测峰值。
 t('没信号 / 太轻 / 没听清 是三个互斥的答案', () => {
@@ -306,11 +306,11 @@ t('没信号 / 太轻 / 没听清 是三个互斥的答案', () => {
   // 2026-09-21 实测那一条：整段峰值 0.0139。
   assert.strictEqual(P.silentSnap(snap(0.0139)), false);
   assert.strictEqual(P.quietSnap(snap(0.0139)), true);
-  assert.match(P.emptyWhy(snap(0.0139), true), /没录到/);
+  assert.match(P.emptyWhy(snap(0.0139), true), /没转出字/);
   assert.match(P.emptyWhy(snap(0.0139), false), /太轻/);
   assert.match(P.emptyWhy(snap(0.0139), false), /0\.0139/);
 
-  // 两档药丸文案一样，长文案必须还能分得开——否则查历史时「没录到」和
+  // 长文案必须能分得开——否则查历史时「没录到」和
   // 「录到了但太轻」就成了同一条，设备故障又一次伪装成识别问题。
   assert.notStrictEqual(P.emptyWhy(snap(0), false), P.emptyWhy(snap(0.0139), false));
 

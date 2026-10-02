@@ -11,9 +11,8 @@
 // 2. bounds 存的是 DIP。和 Electron 版共用同一份 settingsWinBounds，那边
 //    getBounds() 给的就是 DIP；Tauri 的 set_position/set_size 要物理像素，
 //    所以只在最后一步乘缩放比。中间一律 DIP。
-// 3. 开机自启自己写注册表。Electron 的 app.setLoginItemSettings 这边没有，
-//    但那条「先清 StartupApproved 的否决记录再写 Run」的顺序必须原样保留——
-//    顺序反了的话写完读回来还是 false，开关会在用户眼前自己弹回去。
+// 3. 开机自启自己放「启动」文件夹快捷方式。Electron 的 app.setLoginItemSettings
+//    这边没有；Run 键在这台机器上开机不执行，设置页也显示成没图标的路径。
 
 use serde_json::{json, Map, Value};
 use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
@@ -548,15 +547,26 @@ pub fn reset_floating_mic(app: AppHandle) -> Value {
 
 // ── 开机自启 ──────────────────────────────────────────────────────
 
+// 自启走「启动」文件夹里的快捷方式，不走 Run 键：Run 项在这台机器上开机不执行，
+// 设置页也只显示成没图标的注册表路径；快捷方式带 exe 自己的名字和图标。
+
 const RUN_KEY: &str = r"HKCU\Software\Microsoft\Windows\CurrentVersion\Run";
 const APPROVED_KEY: &str =
-    r"HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\Run";
-const RUN_NAME: &str = "Localless";
-/// 老版本写下的那条，命令行和正规那条一字不差，Electron 从不碰它。
-const LEGACY_RUN_NAME: &str = "electron.app.Electron";
+    r"HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\StartupFolder";
+const LNK_NAME: &str = "Localless.lnk";
+/// 以前写在 Run 键里的两条，打开或关闭都顺手清掉，否则开机会起两个。
+const OLD_RUN_NAMES: [&str; 2] = ["Localless", "electron.app.Electron"];
 
-/// reg.exe 而不是 powershell：这两个调用一个在启动路径、一个在点开关的那一下，
-/// powershell 每次要付 ~800ms 的编译钱，reg 是 ~30ms。值名大小写无所谓，注册表不分。
+fn startup_lnk() -> Option<std::path::PathBuf> {
+    let appdata = std::env::var_os("APPDATA")?;
+    Some(
+        std::path::PathBuf::from(appdata)
+            .join(r"Microsoft\Windows\Start Menu\Programs\Startup")
+            .join(LNK_NAME),
+    )
+}
+
+/// 值名大小写无所谓，注册表不分。
 fn reg(args: &[&str]) -> bool {
     use std::os::windows::process::CommandExt;
     std::process::Command::new("reg")
@@ -569,32 +579,58 @@ fn reg(args: &[&str]) -> bool {
         .unwrap_or(false)
 }
 
+/// 建 .lnk 只能走 WScript.Shell。路径从环境变量传进去，不拼进命令行——
+/// 路径里有中文和空格，拼进去就得操心转义。
+fn make_lnk(exe: &str, lnk: &std::path::Path) -> bool {
+    use std::os::windows::process::CommandExt;
+    const PS: &str = "$s=(New-Object -ComObject WScript.Shell).CreateShortcut($env:LL_LNK);\
+        $s.TargetPath=$env:LL_EXE;$s.WorkingDirectory=Split-Path $env:LL_EXE;\
+        $s.IconLocation=\"$env:LL_EXE,0\";$s.Description='Localless';$s.Save()";
+    std::process::Command::new("powershell")
+        .args(["-NoProfile", "-NonInteractive", "-Command", PS])
+        .env("LL_EXE", exe)
+        .env("LL_LNK", lnk)
+        .creation_flags(0x0800_0000)
+        .stdout(std::process::Stdio::null())
+        .stderr(std::process::Stdio::null())
+        .status()
+        .map(|s| s.success())
+        .unwrap_or(false)
+}
+
 #[tauri::command]
 pub fn autostart_get() -> bool {
-    reg(&["query", RUN_KEY, "/v", RUN_NAME])
+    startup_lnk().is_some_and(|p| p.exists())
 }
 
 #[tauri::command]
 pub fn autostart_set(enabled: bool) -> bool {
+    for name in OLD_RUN_NAMES {
+        reg(&["delete", RUN_KEY, "/v", name, "/f"]);
+    }
+    let Some(lnk) = startup_lnk() else {
+        eprintln!("[自启] 拿不到 APPDATA，没法放快捷方式");
+        return false;
+    };
     if enabled {
-        // 先清「设置」里那条否决记录，再写 Run。顺序反了的话，写完读回来还是
-        // false，开关会在用户眼前自己弹回去——这正是「两边对不上」最常见的那一幕。
-        reg(&["delete", APPROVED_KEY, "/v", RUN_NAME, "/f"]);
         let exe = std::env::current_exe()
             .map(|p| p.to_string_lossy().into_owned())
             .unwrap_or_default();
         if exe.is_empty() {
-            eprintln!("[自启] 拿不到自己的路径，没写注册表");
+            eprintln!("[自启] 拿不到自己的路径，没放快捷方式");
             return false;
         }
-        // 路径带空格（"Program Files"）必须带引号，否则开机时 Windows 会把
-        // 第一个空格之后的部分当参数，程序根本起不来。
-        let quoted = format!("\"{exe}\"");
-        reg(&["add", RUN_KEY, "/v", RUN_NAME, "/t", "REG_SZ", "/d", &quoted, "/f"]);
+        // 「设置 › 启动」里那条记录写成「启用」（02 开头）：它若曾被关成奇数
+        // 首字节，光放快捷方式开机还是不跑。
+        reg(&[
+            "add", APPROVED_KEY, "/v", LNK_NAME, "/t", "REG_BINARY",
+            "/d", "020000000000000000000000", "/f",
+        ]);
+        if !make_lnk(&exe, &lnk) {
+            eprintln!("[自启] 快捷方式没建成");
+        }
     } else {
-        reg(&["delete", RUN_KEY, "/v", RUN_NAME, "/f"]);
-        // 关掉就得两条一起关，不然开关是灭的、机器照样自启。
-        reg(&["delete", RUN_KEY, "/v", LEGACY_RUN_NAME, "/f"]);
+        let _ = std::fs::remove_file(&lnk);
     }
     autostart_get()
 }

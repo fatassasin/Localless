@@ -46,7 +46,7 @@ use windows::Win32::Graphics::Dwm::{
 use windows::Win32::Graphics::Gdi::{CreateRectRgn, DeleteObject, SetWindowRgn};
 use windows::Win32::UI::WindowsAndMessaging::{
     GetWindowLongPtrW, SetWindowLongPtrW, SetWindowPos, SystemParametersInfoW, GWL_EXSTYLE,
-    GWL_STYLE, SPI_GETWORKAREA, SWP_FRAMECHANGED, SWP_NOACTIVATE, SWP_NOMOVE, SWP_NOSIZE,
+    GWL_STYLE, HWND_TOPMOST, SPI_GETWORKAREA, SWP_FRAMECHANGED, SWP_NOACTIVATE, SWP_NOMOVE, SWP_NOSIZE,
     SWP_NOZORDER, SYSTEM_PARAMETERS_INFO_UPDATE_FLAGS, WS_CAPTION, WS_EX_APPWINDOW,
     WS_EX_NOACTIVATE, WS_EX_TOOLWINDOW, WS_EX_TRANSPARENT, WS_MAXIMIZEBOX, WS_MINIMIZEBOX,
     WM_NCACTIVATE, WM_SETICON, WM_SETTEXT, WS_POPUP, WS_SYSMENU, WS_THICKFRAME, WS_VISIBLE,
@@ -448,6 +448,27 @@ unsafe extern "system" fn no_caption_proc(
     r
 }
 
+/// 真把窗口抬到置顶层最上面。
+///
+/// 别用 `set_always_on_top(true)` 来「重申」：tao 只在它自己记的 ALWAYS_ON_TOP 位
+/// 变了时才 SetWindowPos，位已经是真就什么都不做。于是窗口 WS_EX_TOPMOST 还挂着，
+/// z 序里却排在最大化的 Claude、全屏的 Chrome 后面（09-28 实测），药丸画着但看不见。
+pub fn raise_topmost(window: &tauri::WebviewWindow) {
+    let Ok(raw) = window.hwnd() else { return };
+    let hwnd = HWND(raw.0 as *mut std::ffi::c_void);
+    unsafe {
+        let _ = SetWindowPos(
+            hwnd,
+            Some(HWND_TOPMOST),
+            0,
+            0,
+            0,
+            0,
+            SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE,
+        );
+    }
+}
+
 /// 扩展样式被写回去了就补一刀，没被写回去就什么都不做。
 ///
 /// 和 keep_frameless 一个道理、一个用法：给没有天然重放点的覆盖层窗口（悬浮麦
@@ -500,7 +521,7 @@ pub fn pill_rect(window: tauri::WebviewWindow, w: f64, h: f64, lift: f64) {
         apply_ex(&window, false);
         // 置顶一旦丢了，药丸就被别的窗口盖住——症状是「药丸呼不出来」，而录音
         // 链路其实全好。每次从藏到显重挂一次，远程连进来切换会话时最容易丢。
-        let _ = window.set_always_on_top(true);
+        raise_topmost(&window);
         eprintln!("[药丸] 展开");
     }
     eprintln!(
