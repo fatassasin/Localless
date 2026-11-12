@@ -226,6 +226,8 @@ let learnedId = null, currentUiState = 'off', pendingLearnNotice = null;
 function showLearnNotice(d) {
   learnedId = d.id; stopLevel(); show();
   pill.className = 'll-pill learned';
+  // rec 状态给文字栏挂了内联 display:none，不清掉的话只剩撤回和勾两个按钮。
+  text.style.display = '';
   text.textContent = (d.term || '词语') + ' 已添加进 ' + (d.tagName || '词库');
   hideLater(Number(d.ms) || 5000);
 }
@@ -240,7 +242,10 @@ function dismissLearned(doUndo) {
 undo.onclick = () => dismissLearned(true);
 addEventListener('localless:learned', e => {
   const d = e.detail || {};
-  if (currentUiState === 'refine') pendingLearnNotice = d; else showLearnNotice(d);
+  // 学词结果是上一条听写的，常在下一条已经开录时才到：录音、加载、思考期间都先
+  // 攒着，等 done 再弹，否则会把正在录的那条的波形顶掉。
+  if (['rec', 'loading', 'refine'].includes(currentUiState)) pendingLearnNotice = d;
+  else showLearnNotice(d);
 });
 
 // --i 必须走 style.setProperty，不能写成 innerHTML 里的 style="--i:n"：Tauri 给
